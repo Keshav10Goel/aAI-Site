@@ -183,6 +183,7 @@ function App() {
       Notification.requestPermission();
     }
   }, []);
+  
 
   if (loading) {
     return (
