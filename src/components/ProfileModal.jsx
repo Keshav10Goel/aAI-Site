@@ -1,7 +1,6 @@
-import { useState } from "react";
+import React, { useState } from "react";
 
 const ProfileModal = ({ close }) => {
-
   const [form, setForm] = useState({
     name: "",
     age: "",
@@ -19,76 +18,31 @@ const ProfileModal = ({ close }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center z-50">
+    <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
+      <div className="bg-white p-8 rounded-xl w-[420px] shadow-lg">
 
-      <div className="bg-white/90 backdrop-blur-xl p-8 rounded-2xl w-[420px] shadow-2xl animate-fadeIn">
-
-        <h2 className="text-2xl font-bold mb-6 text-gray-800 text-center">
-          Setup Your Profile 👤
+        <h2 className="text-xl font-bold mb-4 text-center">
+          Setup Your Profile
         </h2>
 
-        {/* NAME */}
-        <input
-          name="name"
-          placeholder="Full Name"
-          onChange={handleChange}
-          className="input"
-        />
+        <input name="name" placeholder="Full Name" onChange={handleChange} className="w-full border p-2 mb-2" />
+        <input name="age" type="number" placeholder="Age" onChange={handleChange} className="w-full border p-2 mb-2" />
 
-        {/* AGE */}
-        <input
-          name="age"
-          type="number"
-          placeholder="Age"
-          onChange={handleChange}
-          className="input"
-        />
-
-        {/* GENDER */}
-        <select
-          name="gender"
-          onChange={handleChange}
-          className="input"
-        >
+        <select name="gender" onChange={handleChange} className="w-full border p-2 mb-2">
           <option value="">Select Gender</option>
           <option>Male</option>
           <option>Female</option>
-          <option>Prefer not to say</option>
         </select>
 
-        {/* ROLE (UPGRADED 🔥) */}
-        <select
-          name="role"
-          onChange={handleChange}
-          className="input"
-        >
+        <select name="role" onChange={handleChange} className="w-full border p-2 mb-2">
           <option value="">Select Role</option>
           <option>Student</option>
-          <option>Software Developer</option>
-          <option>Designer</option>
-          <option>Freelancer</option>
-          <option>Office Worker</option>
-          <option>Gamer</option>
-          <option>Content Creator</option>
+          <option>Developer</option>
         </select>
 
-        {/* BUTTONS */}
-        <div className="flex gap-4 mt-6">
-
-          <button
-            onClick={close}
-            className="w-1/2 py-3 rounded-xl border hover:bg-gray-100 transition"
-          >
-            Cancel
-          </button>
-
-          <button
-            onClick={saveProfile}
-            className="w-1/2 py-3 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-xl shadow hover:scale-105 transition"
-          >
-            Save 🚀
-          </button>
-
+        <div className="flex gap-2 mt-4">
+          <button onClick={close} className="w-1/2 border p-2">Cancel</button>
+          <button onClick={saveProfile} className="w-1/2 bg-purple-500 text-white p-2">Save</button>
         </div>
 
       </div>
