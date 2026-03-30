@@ -1753,7 +1753,7 @@ const Landing = () => {
           loop
           muted
           playsInline
-          className="absolute top-0 left-0 w-full h-full object-cover opacity-30"
+          className="absolute top-0 left-0 w-full h-full object-cover opacity-80"
         >
           <source src="/Video.mp4" type="video/mp4" />
         </video>
