@@ -2122,6 +2122,270 @@
 
 
 
+// import { useNavigate } from "react-router-dom";
+// import WebcamFeed from "../components/WebcamFeed";
+// import { ArrowLeft } from "lucide-react";
+// import { supabase } from "../lib/supabase";
+// import { useState, useEffect, useRef } from "react";
+
+// const Dashboard = () => {
+//   const navigate = useNavigate();
+//   const badStartRef = useRef(null);
+//   const startTimeRef = useRef(null);
+//   const webcamRef = useRef(null);
+
+//   const [isMonitoring, setIsMonitoring] = useState(false);
+//   const [blinkRate, setBlinkRate] = useState(0);
+//   const [distance, setDistance] = useState("unknown");
+//   const [expression, setExpression] = useState("neutral");
+//   const [redness, setRedness] = useState("normal");
+//   const [headPosition, setHeadPosition] = useState("aligned");
+//   const [stressScore, setStressScore] = useState(100);
+//   const [screenTime, setScreenTime] = useState(0);
+
+//   const historyRef = useRef({ blink: [], stress: [] });
+//   const intervalRef = useRef(null);
+
+//   const handleLogout = async () => {
+//     await supabase.auth.signOut();
+//     navigate("/login");
+//   };
+
+//   const sendNotification = (message) => {
+//     if ("Notification" in window && Notification.permission === "granted") {
+//       new Notification("aAI Alert 🚨", { body: message });
+//     }
+//   };
+
+//   useEffect(() => {
+//     if (isMonitoring) {
+//       startTimeRef.current = Date.now();
+//     }
+//   }, [isMonitoring]);
+
+//   useEffect(() => {
+//     if (!isMonitoring) return;
+
+//     const timer = setInterval(() => {
+//       const now = Date.now();
+//       const minutes = Math.floor((now - startTimeRef.current) / 60000);
+//       setScreenTime(minutes);
+//     }, 5000);
+
+//     return () => clearInterval(timer);
+//   }, [isMonitoring]);
+
+//   useEffect(() => {
+//     if (!isMonitoring) return;
+//     const collector = setInterval(() => {
+//       historyRef.current.blink.push(blinkRate);
+//       historyRef.current.stress.push(stressScore);
+//     }, 1000);
+//     return () => clearInterval(collector);
+//   }, [isMonitoring, blinkRate, stressScore]);
+
+//   useEffect(() => {
+//     if (!isMonitoring) return;
+
+//     const isBad =
+//       stressScore < 40 ||
+//       headPosition === "tilted" ||
+//       distance === "too close";
+
+//     if (isBad) {
+//       if (!badStartRef.current) {
+//         badStartRef.current = Date.now();
+//       }
+
+//       if (Date.now() - badStartRef.current > 10000) {
+//         sendNotification("Take care of your eyes 👀");
+//         badStartRef.current = null;
+//       }
+//     } else {
+//       badStartRef.current = null;
+//     }
+//   }, [stressScore, headPosition, distance, isMonitoring]);
+
+//   const saveSessionToDB = async () => {
+//     try {
+//       const history = historyRef.current;
+//       if (history.blink.length === 0) return;
+
+//       const avgBlink =
+//         history.blink.reduce((a, b) => a + b, 0) / history.blink.length;
+
+//       const avgStress =
+//         history.stress.reduce((a, b) => a + b, 0) / history.stress.length;
+
+//       const { data: userData } = await supabase.auth.getUser();
+//       if (!userData?.user) return;
+
+//       await supabase.from("sessions").insert([
+//         {
+//           user_id: userData.user.id,
+//           blink_rate: Math.round(avgBlink),
+//           stress_score: Math.round(avgStress),
+//           screen_time: screenTime,
+//           distance,
+//           head_position: headPosition,
+//           expression,
+//           redness,
+//         },
+//       ]);
+
+//       historyRef.current = { blink: [], stress: [] };
+//     } catch (err) {
+//       console.error(err);
+//     }
+//   };
+
+//   useEffect(() => {
+//     if (isMonitoring) {
+//       if (!intervalRef.current) {
+//         intervalRef.current = setInterval(saveSessionToDB, 300000);
+//       }
+//     } else {
+//       clearInterval(intervalRef.current);
+//       intervalRef.current = null;
+//     }
+
+//     return () => clearInterval(intervalRef.current);
+//   }, [isMonitoring]);
+
+//   const handleToggleMonitoring = async () => {
+//     const { data } = await supabase.auth.getUser();
+
+//     if (!data.user) {
+//       navigate("/login");
+//       return;
+//     }
+
+//     if (isMonitoring) await saveSessionToDB();
+//     setIsMonitoring((prev) => !prev);
+//   };
+
+//   const formatTime = (min) =>
+//     min < 60 ? `${min} min` : `${Math.floor(min / 60)}h ${min % 60}m`;
+
+//   const getScoreColor = () =>
+//     stressScore >= 70
+//       ? "text-green-400"
+//       : stressScore >= 40
+//       ? "text-yellow-400"
+//       : "text-red-400";
+
+//   return (
+//     <div className="min-h-screen bg-[#0B1220] text-[#E5E7EB] px-6 py-6">
+
+//       <div className="flex justify-between items-center mb-10">
+
+//         <button
+//           onClick={() => navigate("/")}
+//           className="flex items-center gap-2 text-[#9CA3AF] hover:text-white transition"
+//         >
+//           <ArrowLeft size={18} />
+//           Back
+//         </button>
+
+//         <h1 className="text-4xl font-bold bg-gradient-to-r from-[#A855F7] to-[#EC4899] bg-clip-text text-transparent">
+//           aAI Dashboard
+//         </h1>
+
+//         <div className="flex gap-6 text-sm">
+//           <button
+//             onClick={() => navigate("/progress")}
+//             className="hover:text-[#A855F7]"
+//           >
+//             Progress
+//           </button>
+
+//           <button
+//             onClick={handleLogout}
+//             className="text-red-400 hover:text-red-500"
+//           >
+//             Logout
+//           </button>
+//         </div>
+//       </div>
+
+//       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+//         <div className="bg-gradient-to-br from-[#111827] to-[#1F2937] p-6 rounded-2xl shadow-xl">
+
+//           <h2 className="mb-4 font-semibold">Camera</h2>
+
+//           <div className="h-[260px] bg-black rounded-xl flex items-center justify-center">
+//             {isMonitoring ? (
+//               <WebcamFeed
+//                 ref={webcamRef}
+//                 setBlinkRate={setBlinkRate}
+//                 setDistance={setDistance}
+//                 setRedness={setRedness}
+//                 setStressScore={setStressScore}
+//                 setHeadPosition={setHeadPosition}
+//                 setExpression={setExpression}
+//               />
+//             ) : (
+//               <span className="text-[#9CA3AF]">Camera Off</span>
+//             )}
+//           </div>
+
+//           <button
+//             onClick={handleToggleMonitoring}
+//             className="mt-4 w-full py-2 rounded-xl font-medium bg-gradient-to-r from-[#A855F7] to-[#EC4899] hover:scale-[1.02] transition"
+//           >
+//             {isMonitoring ? "Stop Monitoring" : "Start Monitoring"}
+//           </button>
+
+//           <button
+//             onClick={() => webcamRef.current?.enablePiP()}
+//             className="mt-2 w-full py-2 rounded-xl font-medium bg-gradient-to-r from-[#A855F7] to-[#EC4899] hover:brightness-110 transition"
+//           >
+//             Enable Floating Mode
+//           </button>
+//         </div>
+
+//         <div className="bg-gradient-to-br from-[#111827] to-[#1F2937] p-6 rounded-2xl shadow-xl text-center">
+
+//           <h2 className="mb-4 font-semibold">Stress Score</h2>
+
+//           <div className={`text-6xl font-bold ${getScoreColor()}`}>
+//             {stressScore}
+//           </div>
+
+//           <p className="text-sm text-[#9CA3AF] mt-2">
+//             Real-time analysis
+//           </p>
+//         </div>
+
+//         <div className="bg-gradient-to-br from-[#111827] to-[#1F2937] p-6 rounded-2xl shadow-xl">
+
+//           <h2 className="mb-4 font-semibold">Metrics</h2>
+
+//           <Metric label="Screen Time" value={formatTime(screenTime)} />
+//           <Metric label="Blink Rate" value={blinkRate} />
+//           <Metric label="Distance" value={distance} />
+//           <Metric label="Head Position" value={headPosition} />
+//           <Metric label="Expression" value={expression} />
+//           <Metric label="Redness" value={redness} />
+//         </div>
+
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default Dashboard;
+
+// const Metric = ({ label, value }) => (
+//   <div className="flex justify-between py-2 border-b border-white/10 text-sm">
+//     <span className="text-[#9CA3AF]">{label}</span>
+//     <span className="font-medium text-[#E5E7EB]">{value}</span>
+//   </div>
+// );
+
+
+
 import { useNavigate } from "react-router-dom";
 import WebcamFeed from "../components/WebcamFeed";
 import { ArrowLeft } from "lucide-react";
@@ -2292,12 +2556,15 @@ const Dashboard = () => {
         </h1>
 
         <div className="flex gap-6 text-sm">
-          <button
-            onClick={() => navigate("/progress")}
+
+          <a
+            href="/progress"
+            target="_blank"
+            rel="noopener noreferrer"
             className="hover:text-[#A855F7]"
           >
             Progress
-          </button>
+          </a>
 
           <button
             onClick={handleLogout}
