@@ -513,11 +513,16 @@ const Progress = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const { data, error } = await supabase
-        .from("sessions")
-        .select("*")
-        .order("created_at", { ascending: true });
+      const { data: userData } = await supabase.auth.getUser();
 
+if (!userData?.user) return;
+
+const { data, error } = await supabase
+  .from("sessions")
+  .select("*")
+  .eq("user_id", userData.user.id)
+  .order("created_at", { ascending: true });
+      
       if (error) {
         console.error("❌ Fetch error:", error);
       } else {
