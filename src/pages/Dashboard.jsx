@@ -1089,7 +1089,7 @@ const Dashboard = () => {
         </h1>
 
         <div className="flex gap-4 items-center">
-          <button onClick={() => window.open("/progress", "_blank")} className="text-purple-600 font-medium">
+          <button onClick={() => window.open("/Progress", "_blank")} className="text-purple-600 font-medium">
             Progress
           </button>
 
