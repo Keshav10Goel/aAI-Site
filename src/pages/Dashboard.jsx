@@ -1,643 +1,913 @@
-// // // // import { useState, useEffect, useRef } from "react";
-// // // // import { useNavigate } from "react-router-dom";
-// // // // import WebcamFeed from "../components/WebcamFeed";
-// // // // import { ArrowLeft } from "lucide-react";
-// // // // import { supabase } from "../lib/supabase";
+// // // // // import { useState, useEffect, useRef } from "react";
+// // // // // import { useNavigate } from "react-router-dom";
+// // // // // import WebcamFeed from "../components/WebcamFeed";
+// // // // // import { ArrowLeft } from "lucide-react";
+// // // // // import { supabase } from "../lib/supabase";
 
-// // // // const Dashboard = () => {
-// // // //   const navigate = useNavigate();
+// // // // // const Dashboard = () => {
+// // // // //   const navigate = useNavigate();
 
-// // // //   // 🔐 Auth states
-// // // //   const [showAuthPopup, setShowAuthPopup] = useState(false);
-// // // //   const [pendingStart, setPendingStart] = useState(false);
+// // // // //   // 🔐 Auth states
+// // // // //   const [showAuthPopup, setShowAuthPopup] = useState(false);
+// // // // //   const [pendingStart, setPendingStart] = useState(false);
 
-// // // //   // 🎛️ Monitoring
-// // // //   const [isMonitoring, setIsMonitoring] = useState(false);
+// // // // //   // 🎛️ Monitoring
+// // // // //   const [isMonitoring, setIsMonitoring] = useState(false);
 
-// // // //   // 📊 Metrics
-// // // //   const [blinkRate, setBlinkRate] = useState(0);
-// // // //   const [distance, setDistance] = useState("unknown");
-// // // //   const [expression, setExpression] = useState("neutral");
-// // // //   const [redness, setRedness] = useState("normal");
-// // // //   const [headPosition, setHeadPosition] = useState("aligned");
-// // // //   const [stressScore, setStressScore] = useState(100);
-// // // //   const [screenTime, setScreenTime] = useState(0);
+// // // // //   // 📊 Metrics
+// // // // //   const [blinkRate, setBlinkRate] = useState(0);
+// // // // //   const [distance, setDistance] = useState("unknown");
+// // // // //   const [expression, setExpression] = useState("neutral");
+// // // // //   const [redness, setRedness] = useState("normal");
+// // // // //   const [headPosition, setHeadPosition] = useState("aligned");
+// // // // //   const [stressScore, setStressScore] = useState(100);
+// // // // //   const [screenTime, setScreenTime] = useState(0);
 
-// // // //   const latestData = useRef({});
-// // // //   const intervalRef = useRef(null);
+// // // // //   const latestData = useRef({});
+// // // // //   const intervalRef = useRef(null);
 
-// // // //   // 🔥 Sync latest values
-// // // //   useEffect(() => {
-// // // //     latestData.current = {
-// // // //       blinkRate,
-// // // //       stressScore,
-// // // //       screenTime,
-// // // //       distance,
-// // // //       headPosition,
-// // // //       expression,
-// // // //       redness,
-// // // //     };
-// // // //   }, [blinkRate, stressScore, screenTime, distance, headPosition, expression, redness]);
+// // // // //   // 🔥 Sync latest values
+// // // // //   useEffect(() => {
+// // // // //     latestData.current = {
+// // // // //       blinkRate,
+// // // // //       stressScore,
+// // // // //       screenTime,
+// // // // //       distance,
+// // // // //       headPosition,
+// // // // //       expression,
+// // // // //       redness,
+// // // // //     };
+// // // // //   }, [blinkRate, stressScore, screenTime, distance, headPosition, expression, redness]);
 
-// // // //   // ⏱️ Screen time tracker
-// // // //   useEffect(() => {
-// // // //     if (!isMonitoring) return;
+// // // // //   // ⏱️ Screen time tracker
+// // // // //   useEffect(() => {
+// // // // //     if (!isMonitoring) return;
 
-// // // //     const timer = setInterval(() => {
-// // // //       setScreenTime((prev) => prev + 1);
-// // // //     }, 60000);
+// // // // //     const timer = setInterval(() => {
+// // // // //       setScreenTime((prev) => prev + 1);
+// // // // //     }, 60000);
 
-// // // //     return () => clearInterval(timer);
-// // // //   }, [isMonitoring]);
+// // // // //     return () => clearInterval(timer);
+// // // // //   }, [isMonitoring]);
 
-// // // //   // 🧠 Save session
-// // // //   const saveSessionToDB = async () => {
-// // // //     try {
-// // // //       const data = latestData.current;
+// // // // //   // 🧠 Save session
+// // // // //   const saveSessionToDB = async () => {
+// // // // //     try {
+// // // // //       const data = latestData.current;
 
-// // // //       if (data.screenTime === 0) return;
+// // // // //       if (data.screenTime === 0) return;
 
-// // // //       const { data: userData } = await supabase.auth.getUser();
-// // // //       const user = userData?.user;
+// // // // //       const { data: userData } = await supabase.auth.getUser();
+// // // // //       const user = userData?.user;
 
-// // // //       if (!user) return;
+// // // // //       if (!user) return;
 
-// // // //       const { error } = await supabase.from("sessions").insert([
-// // // //         {
-// // // //           user_id: user.id,
-// // // //           blink_rate: data.blinkRate,
-// // // //           stress_score: data.stressScore,
-// // // //           screen_time: data.screenTime,
-// // // //           distance: data.distance,
-// // // //           head_position: data.headPosition,
-// // // //           expression: data.expression,
-// // // //           redness: data.redness,
-// // // //         },
-// // // //       ]);
+// // // // //       const { error } = await supabase.from("sessions").insert([
+// // // // //         {
+// // // // //           user_id: user.id,
+// // // // //           blink_rate: data.blinkRate,
+// // // // //           stress_score: data.stressScore,
+// // // // //           screen_time: data.screenTime,
+// // // // //           distance: data.distance,
+// // // // //           head_position: data.headPosition,
+// // // // //           expression: data.expression,
+// // // // //           redness: data.redness,
+// // // // //         },
+// // // // //       ]);
 
-// // // //       if (error) console.error("❌ Save error:", error);
-// // // //       else console.log("✅ Data saved");
-// // // //     } catch (err) {
-// // // //       console.error("🔥 Crash:", err);
-// // // //     }
-// // // //   };
+// // // // //       if (error) console.error("❌ Save error:", error);
+// // // // //       else console.log("✅ Data saved");
+// // // // //     } catch (err) {
+// // // // //       console.error("🔥 Crash:", err);
+// // // // //     }
+// // // // //   };
 
-// // // //   // 🔥 Auto save every 5 min
-// // // //   useEffect(() => {
-// // // //     if (isMonitoring) {
-// // // //       if (!intervalRef.current) {
-// // // //         intervalRef.current = setInterval(() => {
-// // // //           saveSessionToDB();
-// // // //         }, 300000); // 5 min
-// // // //       }
-// // // //     } else {
-// // // //       clearInterval(intervalRef.current);
-// // // //       intervalRef.current = null;
-// // // //     }
+// // // // //   // 🔥 Auto save every 5 min
+// // // // //   useEffect(() => {
+// // // // //     if (isMonitoring) {
+// // // // //       if (!intervalRef.current) {
+// // // // //         intervalRef.current = setInterval(() => {
+// // // // //           saveSessionToDB();
+// // // // //         }, 300000); // 5 min
+// // // // //       }
+// // // // //     } else {
+// // // // //       clearInterval(intervalRef.current);
+// // // // //       intervalRef.current = null;
+// // // // //     }
 
-// // // //     return () => clearInterval(intervalRef.current);
-// // // //   }, [isMonitoring]);
+// // // // //     return () => clearInterval(intervalRef.current);
+// // // // //   }, [isMonitoring]);
 
-// // // //   // 🎛️ Toggle Monitoring
-// // // //   const handleToggleMonitoring = async () => {
-// // // //     try {
-// // // //       const { data } = await supabase.auth.getUser();
+// // // // //   // 🎛️ Toggle Monitoring
+// // // // //   const handleToggleMonitoring = async () => {
+// // // // //     try {
+// // // // //       const { data } = await supabase.auth.getUser();
 
-// // // //       if (!data.user) {
-// // // //         setPendingStart(true);
-// // // //         setShowAuthPopup(true);
-// // // //         return;
-// // // //       }
+// // // // //       if (!data.user) {
+// // // // //         setPendingStart(true);
+// // // // //         setShowAuthPopup(true);
+// // // // //         return;
+// // // // //       }
 
-// // // //       if (isMonitoring) {
-// // // //         await saveSessionToDB();
-// // // //       }
+// // // // //       if (isMonitoring) {
+// // // // //         await saveSessionToDB();
+// // // // //       }
 
-// // // //       setIsMonitoring((prev) => !prev);
-// // // //     } catch (err) {
-// // // //       console.error("Toggle error:", err);
-// // // //     }
-// // // //   };
+// // // // //       setIsMonitoring((prev) => !prev);
+// // // // //     } catch (err) {
+// // // // //       console.error("Toggle error:", err);
+// // // // //     }
+// // // // //   };
 
-// // // //   // 🔥 Auto start after login
-// // // //   useEffect(() => {
-// // // //     const checkUser = async () => {
-// // // //       const { data } = await supabase.auth.getUser();
+// // // // //   // 🔥 Auto start after login
+// // // // //   useEffect(() => {
+// // // // //     const checkUser = async () => {
+// // // // //       const { data } = await supabase.auth.getUser();
 
-// // // //       if (data.user && pendingStart) {
-// // // //         setIsMonitoring(true);
-// // // //         setPendingStart(false);
-// // // //       }
-// // // //     };
+// // // // //       if (data.user && pendingStart) {
+// // // // //         setIsMonitoring(true);
+// // // // //         setPendingStart(false);
+// // // // //       }
+// // // // //     };
 
-// // // //     checkUser();
-// // // //   }, [pendingStart]);
+// // // // //     checkUser();
+// // // // //   }, [pendingStart]);
 
-// // // //   const formatTime = (min) =>
-// // // //     min < 60 ? `${min} min` : `${Math.floor(min / 60)}h ${min % 60}m`;
+// // // // //   const formatTime = (min) =>
+// // // // //     min < 60 ? `${min} min` : `${Math.floor(min / 60)}h ${min % 60}m`;
 
-// // // //   const getScoreColor = () =>
-// // // //     stressScore >= 70
-// // // //       ? "text-green-500"
-// // // //       : stressScore >= 40
-// // // //       ? "text-yellow-500"
-// // // //       : "text-red-500";
+// // // // //   const getScoreColor = () =>
+// // // // //     stressScore >= 70
+// // // // //       ? "text-green-500"
+// // // // //       : stressScore >= 40
+// // // // //       ? "text-yellow-500"
+// // // // //       : "text-red-500";
 
-// // // //   return (
-// // // //     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 px-10 py-8">
+// // // // //   return (
+// // // // //     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 px-10 py-8">
 
-// // // //       {/* HEADER */}
-// // // //       <div className="flex justify-between items-center mb-10">
-// // // //         <button
-// // // //           onClick={() => navigate("/")}
-// // // //           className="flex items-center gap-2 text-gray-600"
-// // // //         >
-// // // //           <ArrowLeft size={18} /> Back
-// // // //         </button>
+// // // // //       {/* HEADER */}
+// // // // //       <div className="flex justify-between items-center mb-10">
+// // // // //         <button
+// // // // //           onClick={() => navigate("/")}
+// // // // //           className="flex items-center gap-2 text-gray-600"
+// // // // //         >
+// // // // //           <ArrowLeft size={18} /> Back
+// // // // //         </button>
 
-// // // //         <h1 className="text-3xl font-bold text-purple-600">
-// // // //           aAI Dashboard
-// // // //         </h1>
+// // // // //         <h1 className="text-3xl font-bold text-purple-600">
+// // // // //           aAI Dashboard
+// // // // //         </h1>
 
-// // // //         <button
-// // // //           onClick={() => navigate("/progress")}
-// // // //           className="text-purple-600 font-medium"
-// // // //         >
-// // // //           Progress
-// // // //         </button>
-// // // //       </div>
+// // // // //         <button
+// // // // //           onClick={() => navigate("/progress")}
+// // // // //           className="text-purple-600 font-medium"
+// // // // //         >
+// // // // //           Progress
+// // // // //         </button>
+// // // // //       </div>
 
-// // // //       {/* GRID */}
-// // // //       <div className="grid grid-cols-3 gap-8">
+// // // // //       {/* GRID */}
+// // // // //       <div className="grid grid-cols-3 gap-8">
 
-// // // //         {/* CAMERA */}
-// // // //         <div className="bg-white p-6 rounded-xl shadow">
-// // // //           <h2 className="font-semibold mb-3">Camera</h2>
+// // // // //         {/* CAMERA */}
+// // // // //         <div className="bg-white p-6 rounded-xl shadow">
+// // // // //           <h2 className="font-semibold mb-3">Camera</h2>
 
-// // // //           <div className="h-[300px] bg-black rounded-xl overflow-hidden flex items-center justify-center text-white">
-// // // //             {isMonitoring ? (
-// // // //               <WebcamFeed
-// // // //                 setBlinkRate={setBlinkRate}
-// // // //                 setDistance={setDistance}
-// // // //                 setRedness={setRedness}
-// // // //                 setStressScore={setStressScore}
-// // // //                 setHeadPosition={setHeadPosition}
-// // // //                 setExpression={setExpression}
-// // // //               />
-// // // //             ) : (
-// // // //               "Camera Off"
-// // // //             )}
-// // // //           </div>
+// // // // //           <div className="h-[300px] bg-black rounded-xl overflow-hidden flex items-center justify-center text-white">
+// // // // //             {isMonitoring ? (
+// // // // //               <WebcamFeed
+// // // // //                 setBlinkRate={setBlinkRate}
+// // // // //                 setDistance={setDistance}
+// // // // //                 setRedness={setRedness}
+// // // // //                 setStressScore={setStressScore}
+// // // // //                 setHeadPosition={setHeadPosition}
+// // // // //                 setExpression={setExpression}
+// // // // //               />
+// // // // //             ) : (
+// // // // //               "Camera Off"
+// // // // //             )}
+// // // // //           </div>
 
-// // // //           <button
-// // // //             onClick={handleToggleMonitoring}
-// // // //             className={`mt-4 w-full py-2 rounded text-white ${
-// // // //               isMonitoring ? "bg-red-500" : "bg-purple-500"
-// // // //             }`}
-// // // //           >
-// // // //             {isMonitoring ? "Stop Monitoring" : "Start Monitoring"}
-// // // //           </button>
-// // // //         </div>
+// // // // //           <button
+// // // // //             onClick={handleToggleMonitoring}
+// // // // //             className={`mt-4 w-full py-2 rounded text-white ${
+// // // // //               isMonitoring ? "bg-red-500" : "bg-purple-500"
+// // // // //             }`}
+// // // // //           >
+// // // // //             {isMonitoring ? "Stop Monitoring" : "Start Monitoring"}
+// // // // //           </button>
+// // // // //         </div>
 
-// // // //         {/* STRESS */}
-// // // //         <div className="bg-white p-6 rounded-xl shadow text-center">
-// // // //           <h2 className="font-semibold mb-3">Stress Score</h2>
+// // // // //         {/* STRESS */}
+// // // // //         <div className="bg-white p-6 rounded-xl shadow text-center">
+// // // // //           <h2 className="font-semibold mb-3">Stress Score</h2>
 
-// // // //           <div className={`text-5xl font-bold ${getScoreColor()}`}>
-// // // //             {stressScore}
-// // // //           </div>
-// // // //         </div>
+// // // // //           <div className={`text-5xl font-bold ${getScoreColor()}`}>
+// // // // //             {stressScore}
+// // // // //           </div>
+// // // // //         </div>
 
-// // // //         {/* METRICS */}
-// // // //         <div className="bg-white p-6 rounded-xl shadow">
-// // // //           <Metric label="Screen Time" value={formatTime(screenTime)} />
-// // // //           <Metric label="Blink Rate" value={`${blinkRate}`} />
-// // // //           <Metric label="Distance" value={distance} />
-// // // //           <Metric label="Head Position" value={headPosition} />
-// // // //           <Metric label="Expression" value={expression} />
-// // // //           <Metric label="Redness" value={redness} />
-// // // //         </div>
+// // // // //         {/* METRICS */}
+// // // // //         <div className="bg-white p-6 rounded-xl shadow">
+// // // // //           <Metric label="Screen Time" value={formatTime(screenTime)} />
+// // // // //           <Metric label="Blink Rate" value={`${blinkRate}`} />
+// // // // //           <Metric label="Distance" value={distance} />
+// // // // //           <Metric label="Head Position" value={headPosition} />
+// // // // //           <Metric label="Expression" value={expression} />
+// // // // //           <Metric label="Redness" value={redness} />
+// // // // //         </div>
 
-// // // //       </div>
+// // // // //       </div>
 
-// // // //       {/* 🐱 BILLI */}
-// // // //       <div className="flex justify-center mt-6">
-// // // //         <div className="w-[220px] h-[260px] rounded-xl overflow-hidden shadow">
-// // // //           <video autoPlay loop muted className="w-full h-full object-cover">
-// // // //             <source src="/billi.mp4" type="video/mp4" />
-// // // //           </video>
-// // // //         </div>
-// // // //       </div>
+// // // // //       {/* 🐱 BILLI */}
+// // // // //       <div className="flex justify-center mt-6">
+// // // // //         <div className="w-[220px] h-[260px] rounded-xl overflow-hidden shadow">
+// // // // //           <video autoPlay loop muted className="w-full h-full object-cover">
+// // // // //             <source src="/billi.mp4" type="video/mp4" />
+// // // // //           </video>
+// // // // //         </div>
+// // // // //       </div>
 
-// // // //       {/* 🔐 AUTH POPUP */}
-// // // //       {showAuthPopup && (
-// // // //         <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
-// // // //           <div className="bg-white p-6 rounded-xl text-center space-y-4 shadow-lg">
+// // // // //       {/* 🔐 AUTH POPUP */}
+// // // // //       {showAuthPopup && (
+// // // // //         <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
+// // // // //           <div className="bg-white p-6 rounded-xl text-center space-y-4 shadow-lg">
 
-// // // //             <h2 className="text-lg font-bold text-purple-600">
-// // // //               Login Required 🔐
-// // // //             </h2>
+// // // // //             <h2 className="text-lg font-bold text-purple-600">
+// // // // //               Login Required 🔐
+// // // // //             </h2>
 
-// // // //             <p className="text-sm text-gray-600">
-// // // //               Monitoring start karne ke liye login karo bro 😏
-// // // //             </p>
+// // // // //             <p className="text-sm text-gray-600">
+// // // // //               Monitoring start karne ke liye login karo bro 😏
+// // // // //             </p>
 
-// // // //             <div className="flex gap-3 justify-center">
-// // // //               <button
-// // // //                 onClick={() => navigate("/login")}
-// // // //                 className="bg-purple-500 text-white px-4 py-2 rounded"
-// // // //               >
-// // // //                 Login
-// // // //               </button>
+// // // // //             <div className="flex gap-3 justify-center">
+// // // // //               <button
+// // // // //                 onClick={() => navigate("/login")}
+// // // // //                 className="bg-purple-500 text-white px-4 py-2 rounded"
+// // // // //               >
+// // // // //                 Login
+// // // // //               </button>
 
-// // // //               <button
-// // // //                 onClick={() => navigate("/signup")}
-// // // //                 className="border px-4 py-2 rounded"
-// // // //               >
-// // // //                 Sign Up
-// // // //               </button>
-// // // //             </div>
+// // // // //               <button
+// // // // //                 onClick={() => navigate("/signup")}
+// // // // //                 className="border px-4 py-2 rounded"
+// // // // //               >
+// // // // //                 Sign Up
+// // // // //               </button>
+// // // // //             </div>
 
-// // // //             <button
-// // // //               onClick={() => setShowAuthPopup(false)}
-// // // //               className="text-sm text-gray-500"
-// // // //             >
-// // // //               Cancel
-// // // //             </button>
+// // // // //             <button
+// // // // //               onClick={() => setShowAuthPopup(false)}
+// // // // //               className="text-sm text-gray-500"
+// // // // //             >
+// // // // //               Cancel
+// // // // //             </button>
 
-// // // //           </div>
-// // // //         </div>
-// // // //       )}
-// // // //     </div>
-// // // //   );
-// // // // };
+// // // // //           </div>
+// // // // //         </div>
+// // // // //       )}
+// // // // //     </div>
+// // // // //   );
+// // // // // };
 
-// // // // export default Dashboard;
+// // // // // export default Dashboard;
 
-// // // // // 📊 Metric Component
-// // // // const Metric = ({ label, value }) => (
-// // // //   <div className="flex justify-between py-2 text-sm">
-// // // //     <span className="text-gray-600">{label}</span>
-// // // //     <span>{value}</span>
-// // // //   </div>
+// // // // // // 📊 Metric Component
+// // // // // const Metric = ({ label, value }) => (
+// // // // //   <div className="flex justify-between py-2 text-sm">
+// // // // //     <span className="text-gray-600">{label}</span>
+// // // // //     <span>{value}</span>
+// // // // //   </div>
+// // // // // // );
+// // // // // import { useState, useEffect, useRef } from "react";
+// // // // // import { useNavigate } from "react-router-dom";
+// // // // // import WebcamFeed from "../components/WebcamFeed";
+// // // // // import { ArrowLeft } from "lucide-react";
+// // // // // import { supabase } from "../lib/supabase";
+// // // // // const badStartRef = useRef(null);
+// // // // // const Dashboard = () => {
+// // // // //   const navigate = useNavigate();
+
+// // // // //   // 🔐 Auth states
+// // // // //   const [showAuthPopup, setShowAuthPopup] = useState(false);
+// // // // //   const [pendingStart, setPendingStart] = useState(false);
+
+// // // // //   // 🎛️ Monitoring
+// // // // //   const [isMonitoring, setIsMonitoring] = useState(false);
+
+// // // // //   // 📊 Metrics
+// // // // //   const [blinkRate, setBlinkRate] = useState(0);
+// // // // //   const [distance, setDistance] = useState("unknown");
+// // // // //   const [expression, setExpression] = useState("neutral");
+// // // // //   const [redness, setRedness] = useState("normal");
+// // // // //   const [headPosition, setHeadPosition] = useState("aligned");
+// // // // //   const [stressScore, setStressScore] = useState(100);
+// // // // //   const [screenTime, setScreenTime] = useState(0);
+
+// // // // //   const latestData = useRef({});
+// // // // //   const intervalRef = useRef(null);
+
+// // // // //   // 🔥 Logout function
+// // // // //   const handleLogout = async () => {
+// // // // //     await supabase.auth.signOut();
+// // // // //     navigate("/login");
+// // // // //   };
+// // // // // const sendNotification = (message) => {
+// // // // //   if (Notification.permission === "granted") {
+// // // // //     new Notification("aAI Alert 🚨", {
+// // // // //       body: message,
+// // // // //     });
+// // // // //   }
+// // // // // };
+// // // // //   // 🔥 Sync latest values
+// // // // //   useEffect(() => {
+// // // // //     latestData.current = {
+// // // // //       blinkRate,
+// // // // //       stressScore,
+// // // // //       screenTime,
+// // // // //       distance,
+// // // // //       headPosition,
+// // // // //       expression,
+// // // // //       redness,
+// // // // //     };
+// // // // //   }, [blinkRate, stressScore, screenTime, distance, headPosition, expression, redness]);
+
+// // // // //   // ⏱️ Screen time tracker
+// // // // //   useEffect(() => {
+// // // // //     if (!isMonitoring) return;
+
+// // // // //     const timer = setInterval(() => {
+// // // // //       setScreenTime((prev) => prev + 1);
+// // // // //     }, 60000);
+
+// // // // //     return () => clearInterval(timer);
+// // // // //   }, [isMonitoring]);
+
+// // // // //   // 🧠 Save session
+// // // // //   const saveSessionToDB = async () => {
+// // // // //     try {
+// // // // //       const data = latestData.current;
+
+// // // // //       if (data.screenTime === 0) return;
+
+// // // // //       const { data: userData } = await supabase.auth.getUser();
+// // // // //       const user = userData?.user;
+
+// // // // //       if (!user) return;
+
+// // // // //       const { error } = await supabase.from("sessions").insert([
+// // // // //         {
+// // // // //           user_id: user.id,
+// // // // //           blink_rate: data.blinkRate,
+// // // // //           stress_score: data.stressScore,
+// // // // //           screen_time: data.screenTime,
+// // // // //           distance: data.distance,
+// // // // //           head_position: data.headPosition,
+// // // // //           expression: data.expression,
+// // // // //           redness: data.redness,
+// // // // //         },
+// // // // //       ]);
+
+// // // // //       if (error) console.error("❌ Save error:", error);
+// // // // //       else console.log("✅ Data saved");
+// // // // //     } catch (err) {
+// // // // //       console.error("🔥 Crash:", err);
+// // // // //     }
+// // // // //   };
+// // // // //   useEffect(() => {
+// // // // //   if (!isMonitoring) return;
+
+// // // // //   const isBad =
+// // // // //     stressScore < 40 ||
+// // // // //     headPosition === "tilted" ||
+// // // // //     distance === "too close";
+
+// // // // //   if (isBad) {
+// // // // //     if (!badStartRef.current) {
+// // // // //       badStartRef.current = Date.now();
+// // // // //     }
+
+// // // // //     const duration = Date.now() - badStartRef.current;
+
+// // // // //     // 🔥 TEST MODE: 10 sec
+// // // // //     if (duration > 10000) {
+// // // // //       let msg = "";
+
+// // // // //       if (stressScore < 40) msg = "High eye strain detected 👀";
+// // // // //       else if (headPosition === "tilted") msg = "Fix your posture 🧍";
+// // // // //       else if (distance === "too close") msg = "Move away from screen 📏";
+
+// // // // //       sendNotification(msg);
+
+// // // // //       // reset to avoid spam
+// // // // //       badStartRef.current = null;
+// // // // //     }
+// // // // //   } else {
+// // // // //     badStartRef.current = null;
+// // // // //   }
+// // // // // }, [stressScore, headPosition, distance, isMonitoring]);
+// // // // //   // 🔥 Auto save every 5 min
+// // // // //   useEffect(() => {
+// // // // //     if (isMonitoring) {
+// // // // //       if (!intervalRef.current) {
+// // // // //         intervalRef.current = setInterval(() => {
+// // // // //           saveSessionToDB();
+// // // // //         }, 300000);
+// // // // //       }
+// // // // //     } else {
+// // // // //       clearInterval(intervalRef.current);
+// // // // //       intervalRef.current = null;
+// // // // //     }
+
+// // // // //     return () => clearInterval(intervalRef.current);
+// // // // //   }, [isMonitoring]);
+
+// // // // //   // 🎛️ Toggle Monitoring
+// // // // //   const handleToggleMonitoring = async () => {
+// // // // //     try {
+// // // // //       const { data } = await supabase.auth.getUser();
+
+// // // // //       if (!data.user) {
+// // // // //         setPendingStart(true);
+// // // // //         setShowAuthPopup(true);
+// // // // //         return;
+// // // // //       }
+
+// // // // //       if (isMonitoring) {
+// // // // //         await saveSessionToDB();
+// // // // //       }
+
+// // // // //       setIsMonitoring((prev) => !prev);
+// // // // //     } catch (err) {
+// // // // //       console.error("Toggle error:", err);
+// // // // //     }
+// // // // //   };
+
+// // // // //   // 🔥 Auto start after login
+// // // // //   useEffect(() => {
+// // // // //     const checkUser = async () => {
+// // // // //       const { data } = await supabase.auth.getUser();
+
+// // // // //       if (data.user && pendingStart) {
+// // // // //         setIsMonitoring(true);
+// // // // //         setPendingStart(false);
+// // // // //       }
+// // // // //     };
+
+// // // // //     checkUser();
+// // // // //   }, [pendingStart]);
+
+// // // // //   const formatTime = (min) =>
+// // // // //     min < 60 ? `${min} min` : `${Math.floor(min / 60)}h ${min % 60}m`;
+
+// // // // //   const getScoreColor = () =>
+// // // // //     stressScore >= 70
+// // // // //       ? "text-green-500"
+// // // // //       : stressScore >= 40
+// // // // //       ? "text-yellow-500"
+// // // // //       : "text-red-500";
+
+// // // // //   return (
+// // // // //     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 px-10 py-8">
+
+// // // // //       {/* HEADER */}
+// // // // //       <div className="flex justify-between items-center mb-10">
+
+// // // // //         <button
+// // // // //           onClick={() => navigate("/")}
+// // // // //           className="flex items-center gap-2 text-gray-600"
+// // // // //         >
+// // // // //           <ArrowLeft size={18} /> Back
+// // // // //         </button>
+
+// // // // //         <h1 className="text-3xl font-bold text-purple-600">
+// // // // //           aAI Dashboard
+// // // // //         </h1>
+
+// // // // //         <div className="flex gap-4 items-center">
+// // // // //           <button
+// // // // //             onClick={() => navigate("/progress")}
+// // // // //             className="text-purple-600 font-medium"
+// // // // //           >
+// // // // //             Progress
+// // // // //           </button>
+
+// // // // //           {/* 🔥 LOGOUT BUTTON */}
+// // // // //           <button
+// // // // //             onClick={handleLogout}
+// // // // //             className="bg-red-500 text-white px-4 py-1 rounded hover:bg-red-600 transition"
+// // // // //           >
+// // // // //             Logout
+// // // // //           </button>
+// // // // //         </div>
+
+// // // // //       </div>
+
+// // // // //       {/* GRID */}
+// // // // //       <div className="grid grid-cols-3 gap-8">
+
+// // // // //         {/* CAMERA */}
+// // // // //         <div className="bg-white p-6 rounded-xl shadow">
+// // // // //           <h2 className="font-semibold mb-3">Camera</h2>
+
+// // // // //           <div className="h-[300px] bg-black rounded-xl overflow-hidden flex items-center justify-center text-white">
+// // // // //             {isMonitoring ? (
+// // // // //               <WebcamFeed
+// // // // //                 setBlinkRate={setBlinkRate}
+// // // // //                 setDistance={setDistance}
+// // // // //                 setRedness={setRedness}
+// // // // //                 setStressScore={setStressScore}
+// // // // //                 setHeadPosition={setHeadPosition}
+// // // // //                 setExpression={setExpression}
+// // // // //               />
+// // // // //             ) : (
+// // // // //               "Camera Off"
+// // // // //             )}
+// // // // //           </div>
+
+// // // // //           <button
+// // // // //             onClick={handleToggleMonitoring}
+// // // // //             className={`mt-4 w-full py-2 rounded text-white ${
+// // // // //               isMonitoring ? "bg-red-500" : "bg-purple-500"
+// // // // //             }`}
+// // // // //           >
+// // // // //             {isMonitoring ? "Stop Monitoring" : "Start Monitoring"}
+// // // // //           </button>
+// // // // //         </div>
+
+// // // // //         {/* STRESS */}
+// // // // //         <div className="bg-white p-6 rounded-xl shadow text-center">
+// // // // //           <h2 className="font-semibold mb-3">Stress Score</h2>
+
+// // // // //           <div className={`text-5xl font-bold ${getScoreColor()}`}>
+// // // // //             {stressScore}
+// // // // //           </div>
+// // // // //         </div>
+
+// // // // //         {/* METRICS */}
+// // // // //         <div className="bg-white p-6 rounded-xl shadow">
+// // // // //           <Metric label="Screen Time" value={formatTime(screenTime)} />
+// // // // //           <Metric label="Blink Rate" value={`${blinkRate}`} />
+// // // // //           <Metric label="Distance" value={distance} />
+// // // // //           <Metric label="Head Position" value={headPosition} />
+// // // // //           <Metric label="Expression" value={expression} />
+// // // // //           <Metric label="Redness" value={redness} />
+// // // // //         </div>
+
+// // // // //       </div>
+
+// // // // //       {/* 🐱 BILLI */}
+// // // // //       <div className="flex justify-center mt-6">
+// // // // //         <div className="w-[220px] h-[260px] rounded-xl overflow-hidden shadow">
+// // // // //           <video autoPlay loop muted className="w-full h-full object-cover">
+// // // // //             <source src="/billi.mp4" type="video/mp4" />
+// // // // //           </video>
+// // // // //         </div>
+// // // // //       </div>
+
+// // // // //       {/* 🔐 AUTH POPUP */}
+// // // // //       {showAuthPopup && (
+// // // // //         <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
+// // // // //           <div className="bg-white p-6 rounded-xl text-center space-y-4 shadow-lg">
+
+// // // // //             <h2 className="text-lg font-bold text-purple-600">
+// // // // //               Login Required 🔐
+// // // // //             </h2>
+
+// // // // //             <p className="text-sm text-gray-600">
+// // // // //               Monitoring start karne ke liye login karo bro 😏
+// // // // //             </p>
+
+// // // // //             <div className="flex gap-3 justify-center">
+// // // // //               <button
+// // // // //                 onClick={() => navigate("/login")}
+// // // // //                 className="bg-purple-500 text-white px-4 py-2 rounded"
+// // // // //               >
+// // // // //                 Login
+// // // // //               </button>
+
+// // // // //               <button
+// // // // //                 onClick={() => navigate("/signup")}
+// // // // //                 className="border px-4 py-2 rounded"
+// // // // //               >
+// // // // //                 Sign Up
+// // // // //               </button>
+// // // // //             </div>
+
+// // // // //             <button
+// // // // //               onClick={() => setShowAuthPopup(false)}
+// // // // //               className="text-sm text-gray-500"
+// // // // //             >
+// // // // //               Cancel
+// // // // //             </button>
+
+// // // // //           </div>
+// // // // //         </div>
+// // // // //       )}
+// // // // //     </div>
+// // // // //   );
+// // // // // };
+
+// // // // // export default Dashboard;
+
+// // // // // // 📊 Metric Component
+// // // // // const Metric = ({ label, value }) => (
+// // // // //   <div className="flex justify-between py-2 text-sm">
+// // // // //     <span className="text-gray-600">{label}</span>
+// // // // //     <span>{value}</span>
+// // // // //   </div>
+// // // // // );import { useState, useEffect, useRef } from "react";
+// // // // // import { useNavigate } from "react-router-dom";
+// // // // // import WebcamFeed from "../components/WebcamFeed";
+// // // // // import { ArrowLeft } from "lucide-react";
+// // // // // import { supabase } from "../lib/supabase";
+// // // // // import { useState, useEffect, useRef } from "react";
+// // // // // const Dashboard = () => {
+// // // // //   const navigate = useNavigate();
+
+// // // // //   // 🔥 FIX: Hook inside component
+// // // // //   const badStartRef = useRef(null);
+
+// // // // //   // 🔐 Auth states
+// // // // //   const [showAuthPopup, setShowAuthPopup] = useState(false);
+// // // // //   const [pendingStart, setPendingStart] = useState(false);
+
+// // // // //   // 🎛️ Monitoring
+// // // // //   const [isMonitoring, setIsMonitoring] = useState(false);
+
+// // // // //   // 📊 Metrics
+// // // // //   const [blinkRate, setBlinkRate] = useState(0);
+// // // // //   const [distance, setDistance] = useState("unknown");
+// // // // //   const [expression, setExpression] = useState("neutral");
+// // // // //   const [redness, setRedness] = useState("normal");
+// // // // //   const [headPosition, setHeadPosition] = useState("aligned");
+// // // // //   const [stressScore, setStressScore] = useState(100);
+// // // // //   const [screenTime, setScreenTime] = useState(0);
+
+// // // // //   const latestData = useRef({});
+// // // // //   const intervalRef = useRef(null);
+
+// // // // //   // 🔥 Logout
+// // // // //   const handleLogout = async () => {
+// // // // //     await supabase.auth.signOut();
+// // // // //     navigate("/login");
+// // // // //   };
+
+// // // // //   // 🔔 Notification function
+// // // // //   const sendNotification = (message) => {
+// // // // //     if ("Notification" in window && Notification.permission === "granted") {
+// // // // //       new Notification("aAI Alert 🚨", {
+// // // // //         body: message,
+// // // // //       });
+// // // // //     }
+// // // // //   };
+
+// // // // //   // 🔄 Sync latest values
+// // // // //   useEffect(() => {
+// // // // //     latestData.current = {
+// // // // //       blinkRate,
+// // // // //       stressScore,
+// // // // //       screenTime,
+// // // // //       distance,
+// // // // //       headPosition,
+// // // // //       expression,
+// // // // //       redness,
+// // // // //     };
+// // // // //   }, [blinkRate, stressScore, screenTime, distance, headPosition, expression, redness]);
+
+// // // // //   // ⏱️ Screen time
+// // // // //   useEffect(() => {
+// // // // //     if (!isMonitoring) return;
+
+// // // // //     const timer = setInterval(() => {
+// // // // //       setScreenTime((prev) => prev + 1);
+// // // // //     }, 60000);
+
+// // // // //     return () => clearInterval(timer);
+// // // // //   }, [isMonitoring]);
+
+// // // // //   // 🔥 NOTIFICATION LOGIC
+// // // // //   useEffect(() => {
+// // // // //     if (!isMonitoring) return;
+
+// // // // //     const isBad =
+// // // // //       stressScore < 40 ||
+// // // // //       headPosition === "tilted" ||
+// // // // //       distance === "too close";
+
+// // // // //     if (isBad) {
+// // // // //       if (!badStartRef.current) {
+// // // // //         badStartRef.current = Date.now();
+// // // // //       }
+
+// // // // //       const duration = Date.now() - badStartRef.current;
+
+// // // // //       if (duration > 10000) {
+// // // // //         let msg = "";
+
+// // // // //         if (stressScore < 40) msg = "High eye strain detected 👀";
+// // // // //         else if (headPosition === "tilted") msg = "Fix your posture 🧍";
+// // // // //         else if (distance === "too close") msg = "Move away from screen 📏";
+
+// // // // //         sendNotification(msg);
+
+// // // // //         badStartRef.current = null;
+// // // // //       }
+// // // // //     } else {
+// // // // //       badStartRef.current = null;
+// // // // //     }
+// // // // //   }, [stressScore, headPosition, distance, isMonitoring]);
+
+// // // // //   // 💾 Save session
+// // // // //   const saveSessionToDB = async () => {
+// // // // //     try {
+// // // // //       const data = latestData.current;
+
+// // // // //       if (data.screenTime === 0) return;
+
+// // // // //       const { data: userData } = await supabase.auth.getUser();
+// // // // //       const user = userData?.user;
+
+// // // // //       if (!user) return;
+
+// // // // //       await supabase.from("sessions").insert([
+// // // // //         {
+// // // // //           user_id: user.id,
+// // // // //           blink_rate: data.blinkRate,
+// // // // //           stress_score: data.stressScore,
+// // // // //           screen_time: data.screenTime,
+// // // // //           distance: data.distance,
+// // // // //           head_position: data.headPosition,
+// // // // //           expression: data.expression,
+// // // // //           redness: data.redness,
+// // // // //         },
+// // // // //       ]);
+// // // // //     } catch (err) {
+// // // // //       console.error(err);
+// // // // //     }
+// // // // //   };
+
+// // // // //   // 🔁 Auto save
+// // // // //   useEffect(() => {
+// // // // //     if (isMonitoring) {
+// // // // //       if (!intervalRef.current) {
+// // // // //         intervalRef.current = setInterval(saveSessionToDB, 300000);
+// // // // //       }
+// // // // //     } else {
+// // // // //       clearInterval(intervalRef.current);
+// // // // //       intervalRef.current = null;
+// // // // //     }
+
+// // // // //     return () => clearInterval(intervalRef.current);
+// // // // //   }, [isMonitoring]);
+
+// // // // //   // ▶️ Toggle monitoring
+// // // // //   const handleToggleMonitoring = async () => {
+// // // // //     const { data } = await supabase.auth.getUser();
+
+// // // // //     if (!data.user) {
+// // // // //       setPendingStart(true);
+// // // // //       setShowAuthPopup(true);
+// // // // //       return;
+// // // // //     }
+
+// // // // //     if (isMonitoring) await saveSessionToDB();
+
+// // // // //     setIsMonitoring((prev) => !prev);
+// // // // //   };
+
+// // // // //   // 🔄 Auto start after login
+// // // // //   useEffect(() => {
+// // // // //     const checkUser = async () => {
+// // // // //       const { data } = await supabase.auth.getUser();
+// // // // //       if (data.user && pendingStart) {
+// // // // //         setIsMonitoring(true);
+// // // // //         setPendingStart(false);
+// // // // //       }
+// // // // //     };
+// // // // //     checkUser();
+// // // // //   }, [pendingStart]);
+
+// // // // //   const formatTime = (min) =>
+// // // // //     min < 60 ? `${min} min` : `${Math.floor(min / 60)}h ${min % 60}m`;
+
+// // // // //   const getScoreColor = () =>
+// // // // //     stressScore >= 70
+// // // // //       ? "text-green-500"
+// // // // //       : stressScore >= 40
+// // // // //       ? "text-yellow-500"
+// // // // //       : "text-red-500";
+
+// // // // //   return (
+// // // // //     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 px-10 py-8">
+
+// // // // //       {/* HEADER */}
+// // // // //       <div className="flex justify-between items-center mb-10">
+
+// // // // //         <button onClick={() => navigate("/")} className="flex items-center gap-2 text-gray-600">
+// // // // //           <ArrowLeft size={18} /> Back
+// // // // //         </button>
+
+// // // // //         <h1 className="text-3xl font-bold text-purple-600">
+// // // // //           aAI Dashboard
+// // // // //         </h1>
+
+// // // // //         <div className="flex gap-4 items-center">
+// // // // //           <button onClick={() => navigate("/progress")} className="text-purple-600 font-medium">
+// // // // //             Progress
+// // // // //           </button>
+
+// // // // //           <button
+// // // // //             onClick={handleLogout}
+// // // // //             className="bg-red-500 text-white px-4 py-1 rounded hover:bg-red-600"
+// // // // //           >
+// // // // //             Logout
+// // // // //           </button>
+// // // // //         </div>
+
+// // // // //       </div>
+
+// // // // //       {/* GRID */}
+// // // // //       <div className="grid grid-cols-3 gap-8">
+
+// // // // //         {/* CAMERA */}
+// // // // //         <div className="bg-white p-6 rounded-xl shadow">
+// // // // //           <h2 className="font-semibold mb-3">Camera</h2>
+
+// // // // //           <div className="h-[300px] bg-black rounded-xl flex items-center justify-center text-white">
+// // // // //             {isMonitoring ? (
+// // // // //               <WebcamFeed
+// // // // //                 setBlinkRate={setBlinkRate}
+// // // // //                 setDistance={setDistance}
+// // // // //                 setRedness={setRedness}
+// // // // //                 setStressScore={setStressScore}
+// // // // //                 setHeadPosition={setHeadPosition}
+// // // // //                 setExpression={setExpression}
+// // // // //               />
+// // // // //             ) : (
+// // // // //               "Camera Off"
+// // // // //             )}
+// // // // //           </div>
+
+// // // // //           <button
+// // // // //             onClick={handleToggleMonitoring}
+// // // // //             className={`mt-4 w-full py-2 rounded text-white ${
+// // // // //               isMonitoring ? "bg-red-500" : "bg-purple-500"
+// // // // //             }`}
+// // // // //           >
+// // // // //             {isMonitoring ? "Stop Monitoring" : "Start Monitoring"}
+// // // // //           </button>
+// // // // //         </div>
+
+// // // // //         {/* STRESS */}
+// // // // //         <div className="bg-white p-6 rounded-xl shadow text-center">
+// // // // //           <h2 className="font-semibold mb-3">Stress Score</h2>
+// // // // //           <div className={`text-5xl font-bold ${getScoreColor()}`}>
+// // // // //             {stressScore}
+// // // // //           </div>
+// // // // //         </div>
+
+// // // // //         {/* METRICS */}
+// // // // //         <div className="bg-white p-6 rounded-xl shadow">
+// // // // //           <Metric label="Screen Time" value={formatTime(screenTime)} />
+// // // // //           <Metric label="Blink Rate" value={`${blinkRate}`} />
+// // // // //           <Metric label="Distance" value={distance} />
+// // // // //           <Metric label="Head Position" value={headPosition} />
+// // // // //           <Metric label="Expression" value={expression} />
+// // // // //           <Metric label="Redness" value={redness} />
+// // // // //         </div>
+
+// // // // //       </div>
+// // // // //     </div>
+// // // // //   );
+// // // // // };
+
+// // // // // export default Dashboard;
+
+// // // // // const Metric = ({ label, value }) => (
+// // // // //   <div className="flex justify-between py-2 text-sm">
+// // // // //     <span className="text-gray-600">{label}</span>
+// // // // //     <span>{value}</span>
+// // // // //   </div>
 // // // // // );
-// // // // import { useState, useEffect, useRef } from "react";
-// // // // import { useNavigate } from "react-router-dom";
-// // // // import WebcamFeed from "../components/WebcamFeed";
-// // // // import { ArrowLeft } from "lucide-react";
-// // // // import { supabase } from "../lib/supabase";
-// // // // const badStartRef = useRef(null);
-// // // // const Dashboard = () => {
-// // // //   const navigate = useNavigate();
-
-// // // //   // 🔐 Auth states
-// // // //   const [showAuthPopup, setShowAuthPopup] = useState(false);
-// // // //   const [pendingStart, setPendingStart] = useState(false);
-
-// // // //   // 🎛️ Monitoring
-// // // //   const [isMonitoring, setIsMonitoring] = useState(false);
-
-// // // //   // 📊 Metrics
-// // // //   const [blinkRate, setBlinkRate] = useState(0);
-// // // //   const [distance, setDistance] = useState("unknown");
-// // // //   const [expression, setExpression] = useState("neutral");
-// // // //   const [redness, setRedness] = useState("normal");
-// // // //   const [headPosition, setHeadPosition] = useState("aligned");
-// // // //   const [stressScore, setStressScore] = useState(100);
-// // // //   const [screenTime, setScreenTime] = useState(0);
-
-// // // //   const latestData = useRef({});
-// // // //   const intervalRef = useRef(null);
-
-// // // //   // 🔥 Logout function
-// // // //   const handleLogout = async () => {
-// // // //     await supabase.auth.signOut();
-// // // //     navigate("/login");
-// // // //   };
-// // // // const sendNotification = (message) => {
-// // // //   if (Notification.permission === "granted") {
-// // // //     new Notification("aAI Alert 🚨", {
-// // // //       body: message,
-// // // //     });
-// // // //   }
-// // // // };
-// // // //   // 🔥 Sync latest values
-// // // //   useEffect(() => {
-// // // //     latestData.current = {
-// // // //       blinkRate,
-// // // //       stressScore,
-// // // //       screenTime,
-// // // //       distance,
-// // // //       headPosition,
-// // // //       expression,
-// // // //       redness,
-// // // //     };
-// // // //   }, [blinkRate, stressScore, screenTime, distance, headPosition, expression, redness]);
-
-// // // //   // ⏱️ Screen time tracker
-// // // //   useEffect(() => {
-// // // //     if (!isMonitoring) return;
-
-// // // //     const timer = setInterval(() => {
-// // // //       setScreenTime((prev) => prev + 1);
-// // // //     }, 60000);
-
-// // // //     return () => clearInterval(timer);
-// // // //   }, [isMonitoring]);
-
-// // // //   // 🧠 Save session
-// // // //   const saveSessionToDB = async () => {
-// // // //     try {
-// // // //       const data = latestData.current;
-
-// // // //       if (data.screenTime === 0) return;
-
-// // // //       const { data: userData } = await supabase.auth.getUser();
-// // // //       const user = userData?.user;
-
-// // // //       if (!user) return;
-
-// // // //       const { error } = await supabase.from("sessions").insert([
-// // // //         {
-// // // //           user_id: user.id,
-// // // //           blink_rate: data.blinkRate,
-// // // //           stress_score: data.stressScore,
-// // // //           screen_time: data.screenTime,
-// // // //           distance: data.distance,
-// // // //           head_position: data.headPosition,
-// // // //           expression: data.expression,
-// // // //           redness: data.redness,
-// // // //         },
-// // // //       ]);
-
-// // // //       if (error) console.error("❌ Save error:", error);
-// // // //       else console.log("✅ Data saved");
-// // // //     } catch (err) {
-// // // //       console.error("🔥 Crash:", err);
-// // // //     }
-// // // //   };
-// // // //   useEffect(() => {
-// // // //   if (!isMonitoring) return;
-
-// // // //   const isBad =
-// // // //     stressScore < 40 ||
-// // // //     headPosition === "tilted" ||
-// // // //     distance === "too close";
-
-// // // //   if (isBad) {
-// // // //     if (!badStartRef.current) {
-// // // //       badStartRef.current = Date.now();
-// // // //     }
-
-// // // //     const duration = Date.now() - badStartRef.current;
-
-// // // //     // 🔥 TEST MODE: 10 sec
-// // // //     if (duration > 10000) {
-// // // //       let msg = "";
-
-// // // //       if (stressScore < 40) msg = "High eye strain detected 👀";
-// // // //       else if (headPosition === "tilted") msg = "Fix your posture 🧍";
-// // // //       else if (distance === "too close") msg = "Move away from screen 📏";
-
-// // // //       sendNotification(msg);
-
-// // // //       // reset to avoid spam
-// // // //       badStartRef.current = null;
-// // // //     }
-// // // //   } else {
-// // // //     badStartRef.current = null;
-// // // //   }
-// // // // }, [stressScore, headPosition, distance, isMonitoring]);
-// // // //   // 🔥 Auto save every 5 min
-// // // //   useEffect(() => {
-// // // //     if (isMonitoring) {
-// // // //       if (!intervalRef.current) {
-// // // //         intervalRef.current = setInterval(() => {
-// // // //           saveSessionToDB();
-// // // //         }, 300000);
-// // // //       }
-// // // //     } else {
-// // // //       clearInterval(intervalRef.current);
-// // // //       intervalRef.current = null;
-// // // //     }
-
-// // // //     return () => clearInterval(intervalRef.current);
-// // // //   }, [isMonitoring]);
-
-// // // //   // 🎛️ Toggle Monitoring
-// // // //   const handleToggleMonitoring = async () => {
-// // // //     try {
-// // // //       const { data } = await supabase.auth.getUser();
-
-// // // //       if (!data.user) {
-// // // //         setPendingStart(true);
-// // // //         setShowAuthPopup(true);
-// // // //         return;
-// // // //       }
-
-// // // //       if (isMonitoring) {
-// // // //         await saveSessionToDB();
-// // // //       }
-
-// // // //       setIsMonitoring((prev) => !prev);
-// // // //     } catch (err) {
-// // // //       console.error("Toggle error:", err);
-// // // //     }
-// // // //   };
-
-// // // //   // 🔥 Auto start after login
-// // // //   useEffect(() => {
-// // // //     const checkUser = async () => {
-// // // //       const { data } = await supabase.auth.getUser();
-
-// // // //       if (data.user && pendingStart) {
-// // // //         setIsMonitoring(true);
-// // // //         setPendingStart(false);
-// // // //       }
-// // // //     };
-
-// // // //     checkUser();
-// // // //   }, [pendingStart]);
-
-// // // //   const formatTime = (min) =>
-// // // //     min < 60 ? `${min} min` : `${Math.floor(min / 60)}h ${min % 60}m`;
-
-// // // //   const getScoreColor = () =>
-// // // //     stressScore >= 70
-// // // //       ? "text-green-500"
-// // // //       : stressScore >= 40
-// // // //       ? "text-yellow-500"
-// // // //       : "text-red-500";
-
-// // // //   return (
-// // // //     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 px-10 py-8">
-
-// // // //       {/* HEADER */}
-// // // //       <div className="flex justify-between items-center mb-10">
-
-// // // //         <button
-// // // //           onClick={() => navigate("/")}
-// // // //           className="flex items-center gap-2 text-gray-600"
-// // // //         >
-// // // //           <ArrowLeft size={18} /> Back
-// // // //         </button>
-
-// // // //         <h1 className="text-3xl font-bold text-purple-600">
-// // // //           aAI Dashboard
-// // // //         </h1>
-
-// // // //         <div className="flex gap-4 items-center">
-// // // //           <button
-// // // //             onClick={() => navigate("/progress")}
-// // // //             className="text-purple-600 font-medium"
-// // // //           >
-// // // //             Progress
-// // // //           </button>
-
-// // // //           {/* 🔥 LOGOUT BUTTON */}
-// // // //           <button
-// // // //             onClick={handleLogout}
-// // // //             className="bg-red-500 text-white px-4 py-1 rounded hover:bg-red-600 transition"
-// // // //           >
-// // // //             Logout
-// // // //           </button>
-// // // //         </div>
-
-// // // //       </div>
-
-// // // //       {/* GRID */}
-// // // //       <div className="grid grid-cols-3 gap-8">
-
-// // // //         {/* CAMERA */}
-// // // //         <div className="bg-white p-6 rounded-xl shadow">
-// // // //           <h2 className="font-semibold mb-3">Camera</h2>
-
-// // // //           <div className="h-[300px] bg-black rounded-xl overflow-hidden flex items-center justify-center text-white">
-// // // //             {isMonitoring ? (
-// // // //               <WebcamFeed
-// // // //                 setBlinkRate={setBlinkRate}
-// // // //                 setDistance={setDistance}
-// // // //                 setRedness={setRedness}
-// // // //                 setStressScore={setStressScore}
-// // // //                 setHeadPosition={setHeadPosition}
-// // // //                 setExpression={setExpression}
-// // // //               />
-// // // //             ) : (
-// // // //               "Camera Off"
-// // // //             )}
-// // // //           </div>
-
-// // // //           <button
-// // // //             onClick={handleToggleMonitoring}
-// // // //             className={`mt-4 w-full py-2 rounded text-white ${
-// // // //               isMonitoring ? "bg-red-500" : "bg-purple-500"
-// // // //             }`}
-// // // //           >
-// // // //             {isMonitoring ? "Stop Monitoring" : "Start Monitoring"}
-// // // //           </button>
-// // // //         </div>
-
-// // // //         {/* STRESS */}
-// // // //         <div className="bg-white p-6 rounded-xl shadow text-center">
-// // // //           <h2 className="font-semibold mb-3">Stress Score</h2>
-
-// // // //           <div className={`text-5xl font-bold ${getScoreColor()}`}>
-// // // //             {stressScore}
-// // // //           </div>
-// // // //         </div>
-
-// // // //         {/* METRICS */}
-// // // //         <div className="bg-white p-6 rounded-xl shadow">
-// // // //           <Metric label="Screen Time" value={formatTime(screenTime)} />
-// // // //           <Metric label="Blink Rate" value={`${blinkRate}`} />
-// // // //           <Metric label="Distance" value={distance} />
-// // // //           <Metric label="Head Position" value={headPosition} />
-// // // //           <Metric label="Expression" value={expression} />
-// // // //           <Metric label="Redness" value={redness} />
-// // // //         </div>
-
-// // // //       </div>
-
-// // // //       {/* 🐱 BILLI */}
-// // // //       <div className="flex justify-center mt-6">
-// // // //         <div className="w-[220px] h-[260px] rounded-xl overflow-hidden shadow">
-// // // //           <video autoPlay loop muted className="w-full h-full object-cover">
-// // // //             <source src="/billi.mp4" type="video/mp4" />
-// // // //           </video>
-// // // //         </div>
-// // // //       </div>
-
-// // // //       {/* 🔐 AUTH POPUP */}
-// // // //       {showAuthPopup && (
-// // // //         <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
-// // // //           <div className="bg-white p-6 rounded-xl text-center space-y-4 shadow-lg">
-
-// // // //             <h2 className="text-lg font-bold text-purple-600">
-// // // //               Login Required 🔐
-// // // //             </h2>
-
-// // // //             <p className="text-sm text-gray-600">
-// // // //               Monitoring start karne ke liye login karo bro 😏
-// // // //             </p>
-
-// // // //             <div className="flex gap-3 justify-center">
-// // // //               <button
-// // // //                 onClick={() => navigate("/login")}
-// // // //                 className="bg-purple-500 text-white px-4 py-2 rounded"
-// // // //               >
-// // // //                 Login
-// // // //               </button>
-
-// // // //               <button
-// // // //                 onClick={() => navigate("/signup")}
-// // // //                 className="border px-4 py-2 rounded"
-// // // //               >
-// // // //                 Sign Up
-// // // //               </button>
-// // // //             </div>
-
-// // // //             <button
-// // // //               onClick={() => setShowAuthPopup(false)}
-// // // //               className="text-sm text-gray-500"
-// // // //             >
-// // // //               Cancel
-// // // //             </button>
-
-// // // //           </div>
-// // // //         </div>
-// // // //       )}
-// // // //     </div>
-// // // //   );
-// // // // };
-
-// // // // export default Dashboard;
-
-// // // // // 📊 Metric Component
-// // // // const Metric = ({ label, value }) => (
-// // // //   <div className="flex justify-between py-2 text-sm">
-// // // //     <span className="text-gray-600">{label}</span>
-// // // //     <span>{value}</span>
-// // // //   </div>
-// // // // );import { useState, useEffect, useRef } from "react";
 // // // // import { useNavigate } from "react-router-dom";
 // // // // import WebcamFeed from "../components/WebcamFeed";
 // // // // import { ArrowLeft } from "lucide-react";
 // // // // import { supabase } from "../lib/supabase";
 // // // // import { useState, useEffect, useRef } from "react";
+
 // // // // const Dashboard = () => {
 // // // //   const navigate = useNavigate();
 
-// // // //   // 🔥 FIX: Hook inside component
 // // // //   const badStartRef = useRef(null);
 
-// // // //   // 🔐 Auth states
 // // // //   const [showAuthPopup, setShowAuthPopup] = useState(false);
 // // // //   const [pendingStart, setPendingStart] = useState(false);
 
-// // // //   // 🎛️ Monitoring
 // // // //   const [isMonitoring, setIsMonitoring] = useState(false);
 
-// // // //   // 📊 Metrics
 // // // //   const [blinkRate, setBlinkRate] = useState(0);
 // // // //   const [distance, setDistance] = useState("unknown");
 // // // //   const [expression, setExpression] = useState("neutral");
@@ -646,38 +916,26 @@
 // // // //   const [stressScore, setStressScore] = useState(100);
 // // // //   const [screenTime, setScreenTime] = useState(0);
 
-// // // //   const latestData = useRef({});
+// // // //   // 🔥 NEW: history for averaging
+// // // //   const historyRef = useRef({
+// // // //     blink: [],
+// // // //     stress: [],
+// // // //   });
+
 // // // //   const intervalRef = useRef(null);
 
-// // // //   // 🔥 Logout
 // // // //   const handleLogout = async () => {
 // // // //     await supabase.auth.signOut();
 // // // //     navigate("/login");
 // // // //   };
 
-// // // //   // 🔔 Notification function
 // // // //   const sendNotification = (message) => {
 // // // //     if ("Notification" in window && Notification.permission === "granted") {
-// // // //       new Notification("aAI Alert 🚨", {
-// // // //         body: message,
-// // // //       });
+// // // //       new Notification("aAI Alert 🚨", { body: message });
 // // // //     }
 // // // //   };
 
-// // // //   // 🔄 Sync latest values
-// // // //   useEffect(() => {
-// // // //     latestData.current = {
-// // // //       blinkRate,
-// // // //       stressScore,
-// // // //       screenTime,
-// // // //       distance,
-// // // //       headPosition,
-// // // //       expression,
-// // // //       redness,
-// // // //     };
-// // // //   }, [blinkRate, stressScore, screenTime, distance, headPosition, expression, redness]);
-
-// // // //   // ⏱️ Screen time
+// // // //   // ⏱️ Screen time (UNCHANGED)
 // // // //   useEffect(() => {
 // // // //     if (!isMonitoring) return;
 
@@ -688,7 +946,19 @@
 // // // //     return () => clearInterval(timer);
 // // // //   }, [isMonitoring]);
 
-// // // //   // 🔥 NOTIFICATION LOGIC
+// // // //   // 🔥 NEW: collect data every second
+// // // //   useEffect(() => {
+// // // //     if (!isMonitoring) return;
+
+// // // //     const collector = setInterval(() => {
+// // // //       historyRef.current.blink.push(blinkRate);
+// // // //       historyRef.current.stress.push(stressScore);
+// // // //     }, 1000);
+
+// // // //     return () => clearInterval(collector);
+// // // //   }, [isMonitoring, blinkRate, stressScore]);
+
+// // // //   // 🔥 NOTIFICATION (UNCHANGED)
 // // // //   useEffect(() => {
 // // // //     if (!isMonitoring) return;
 
@@ -712,7 +982,6 @@
 // // // //         else if (distance === "too close") msg = "Move away from screen 📏";
 
 // // // //         sendNotification(msg);
-
 // // // //         badStartRef.current = null;
 // // // //       }
 // // // //     } else {
@@ -720,36 +989,45 @@
 // // // //     }
 // // // //   }, [stressScore, headPosition, distance, isMonitoring]);
 
-// // // //   // 💾 Save session
+// // // //   // 💾 UPDATED: Save average instead of snapshot
 // // // //   const saveSessionToDB = async () => {
 // // // //     try {
-// // // //       const data = latestData.current;
+// // // //       const history = historyRef.current;
 
-// // // //       if (data.screenTime === 0) return;
+// // // //       if (history.blink.length === 0) return;
+
+// // // //       const avgBlink =
+// // // //         history.blink.reduce((a, b) => a + b, 0) / history.blink.length;
+
+// // // //       const avgStress =
+// // // //         history.stress.reduce((a, b) => a + b, 0) / history.stress.length;
 
 // // // //       const { data: userData } = await supabase.auth.getUser();
 // // // //       const user = userData?.user;
-
 // // // //       if (!user) return;
 
 // // // //       await supabase.from("sessions").insert([
 // // // //         {
 // // // //           user_id: user.id,
-// // // //           blink_rate: data.blinkRate,
-// // // //           stress_score: data.stressScore,
-// // // //           screen_time: data.screenTime,
-// // // //           distance: data.distance,
-// // // //           head_position: data.headPosition,
-// // // //           expression: data.expression,
-// // // //           redness: data.redness,
+// // // //           blink_rate: Math.round(avgBlink),
+// // // //           stress_score: Math.round(avgStress),
+// // // //           screen_time: screenTime,
+// // // //           distance,
+// // // //           head_position: headPosition,
+// // // //           expression,
+// // // //           redness,
 // // // //         },
 // // // //       ]);
+
+// // // //       // 🔥 reset after save
+// // // //       historyRef.current = { blink: [], stress: [] };
+
 // // // //     } catch (err) {
 // // // //       console.error(err);
 // // // //     }
 // // // //   };
 
-// // // //   // 🔁 Auto save
+// // // //   // 🔁 Auto save (UNCHANGED)
 // // // //   useEffect(() => {
 // // // //     if (isMonitoring) {
 // // // //       if (!intervalRef.current) {
@@ -763,7 +1041,6 @@
 // // // //     return () => clearInterval(intervalRef.current);
 // // // //   }, [isMonitoring]);
 
-// // // //   // ▶️ Toggle monitoring
 // // // //   const handleToggleMonitoring = async () => {
 // // // //     const { data } = await supabase.auth.getUser();
 
@@ -778,7 +1055,6 @@
 // // // //     setIsMonitoring((prev) => !prev);
 // // // //   };
 
-// // // //   // 🔄 Auto start after login
 // // // //   useEffect(() => {
 // // // //     const checkUser = async () => {
 // // // //       const { data } = await supabase.auth.getUser();
@@ -803,9 +1079,7 @@
 // // // //   return (
 // // // //     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 px-10 py-8">
 
-// // // //       {/* HEADER */}
 // // // //       <div className="flex justify-between items-center mb-10">
-
 // // // //         <button onClick={() => navigate("/")} className="flex items-center gap-2 text-gray-600">
 // // // //           <ArrowLeft size={18} /> Back
 // // // //         </button>
@@ -815,24 +1089,18 @@
 // // // //         </h1>
 
 // // // //         <div className="flex gap-4 items-center">
-// // // //           <button onClick={() => navigate("/progress")} className="text-purple-600 font-medium">
+// // // //           <button onClick={() => window.open("/Progress", "_blank")} className="text-purple-600 font-medium">
 // // // //             Progress
 // // // //           </button>
 
-// // // //           <button
-// // // //             onClick={handleLogout}
-// // // //             className="bg-red-500 text-white px-4 py-1 rounded hover:bg-red-600"
-// // // //           >
+// // // //           <button onClick={handleLogout} className="bg-red-500 text-white px-4 py-1 rounded">
 // // // //             Logout
 // // // //           </button>
 // // // //         </div>
-
 // // // //       </div>
 
-// // // //       {/* GRID */}
 // // // //       <div className="grid grid-cols-3 gap-8">
 
-// // // //         {/* CAMERA */}
 // // // //         <div className="bg-white p-6 rounded-xl shadow">
 // // // //           <h2 className="font-semibold mb-3">Camera</h2>
 
@@ -861,7 +1129,6 @@
 // // // //           </button>
 // // // //         </div>
 
-// // // //         {/* STRESS */}
 // // // //         <div className="bg-white p-6 rounded-xl shadow text-center">
 // // // //           <h2 className="font-semibold mb-3">Stress Score</h2>
 // // // //           <div className={`text-5xl font-bold ${getScoreColor()}`}>
@@ -869,7 +1136,6 @@
 // // // //           </div>
 // // // //         </div>
 
-// // // //         {/* METRICS */}
 // // // //         <div className="bg-white p-6 rounded-xl shadow">
 // // // //           <Metric label="Screen Time" value={formatTime(screenTime)} />
 // // // //           <Metric label="Blink Rate" value={`${blinkRate}`} />
@@ -892,6 +1158,10 @@
 // // // //     <span>{value}</span>
 // // // //   </div>
 // // // // );
+
+
+
+
 // // // import { useNavigate } from "react-router-dom";
 // // // import WebcamFeed from "../components/WebcamFeed";
 // // // import { ArrowLeft } from "lucide-react";
@@ -900,14 +1170,9 @@
 
 // // // const Dashboard = () => {
 // // //   const navigate = useNavigate();
-
 // // //   const badStartRef = useRef(null);
 
-// // //   const [showAuthPopup, setShowAuthPopup] = useState(false);
-// // //   const [pendingStart, setPendingStart] = useState(false);
-
 // // //   const [isMonitoring, setIsMonitoring] = useState(false);
-
 // // //   const [blinkRate, setBlinkRate] = useState(0);
 // // //   const [distance, setDistance] = useState("unknown");
 // // //   const [expression, setExpression] = useState("neutral");
@@ -916,12 +1181,7 @@
 // // //   const [stressScore, setStressScore] = useState(100);
 // // //   const [screenTime, setScreenTime] = useState(0);
 
-// // //   // 🔥 NEW: history for averaging
-// // //   const historyRef = useRef({
-// // //     blink: [],
-// // //     stress: [],
-// // //   });
-
+// // //   const historyRef = useRef({ blink: [], stress: [] });
 // // //   const intervalRef = useRef(null);
 
 // // //   const handleLogout = async () => {
@@ -935,7 +1195,7 @@
 // // //     }
 // // //   };
 
-// // //   // ⏱️ Screen time (UNCHANGED)
+// // //   // ⏱️ Screen time
 // // //   useEffect(() => {
 // // //     if (!isMonitoring) return;
 
@@ -946,7 +1206,7 @@
 // // //     return () => clearInterval(timer);
 // // //   }, [isMonitoring]);
 
-// // //   // 🔥 NEW: collect data every second
+// // //   // 📊 Collect data
 // // //   useEffect(() => {
 // // //     if (!isMonitoring) return;
 
@@ -958,7 +1218,7 @@
 // // //     return () => clearInterval(collector);
 // // //   }, [isMonitoring, blinkRate, stressScore]);
 
-// // //   // 🔥 NOTIFICATION (UNCHANGED)
+// // //   // 🔔 Notification logic
 // // //   useEffect(() => {
 // // //     if (!isMonitoring) return;
 
@@ -972,16 +1232,8 @@
 // // //         badStartRef.current = Date.now();
 // // //       }
 
-// // //       const duration = Date.now() - badStartRef.current;
-
-// // //       if (duration > 10000) {
-// // //         let msg = "";
-
-// // //         if (stressScore < 40) msg = "High eye strain detected 👀";
-// // //         else if (headPosition === "tilted") msg = "Fix your posture 🧍";
-// // //         else if (distance === "too close") msg = "Move away from screen 📏";
-
-// // //         sendNotification(msg);
+// // //       if (Date.now() - badStartRef.current > 10000) {
+// // //         sendNotification("Take care of your eyes 👀");
 // // //         badStartRef.current = null;
 // // //       }
 // // //     } else {
@@ -989,11 +1241,10 @@
 // // //     }
 // // //   }, [stressScore, headPosition, distance, isMonitoring]);
 
-// // //   // 💾 UPDATED: Save average instead of snapshot
+// // //   // 💾 Save data
 // // //   const saveSessionToDB = async () => {
 // // //     try {
 // // //       const history = historyRef.current;
-
 // // //       if (history.blink.length === 0) return;
 
 // // //       const avgBlink =
@@ -1003,12 +1254,11 @@
 // // //         history.stress.reduce((a, b) => a + b, 0) / history.stress.length;
 
 // // //       const { data: userData } = await supabase.auth.getUser();
-// // //       const user = userData?.user;
-// // //       if (!user) return;
+// // //       if (!userData?.user) return;
 
 // // //       await supabase.from("sessions").insert([
 // // //         {
-// // //           user_id: user.id,
+// // //           user_id: userData.user.id,
 // // //           blink_rate: Math.round(avgBlink),
 // // //           stress_score: Math.round(avgStress),
 // // //           screen_time: screenTime,
@@ -1019,15 +1269,13 @@
 // // //         },
 // // //       ]);
 
-// // //       // 🔥 reset after save
 // // //       historyRef.current = { blink: [], stress: [] };
-
 // // //     } catch (err) {
 // // //       console.error(err);
 // // //     }
 // // //   };
 
-// // //   // 🔁 Auto save (UNCHANGED)
+// // //   // 🔁 Auto save
 // // //   useEffect(() => {
 // // //     if (isMonitoring) {
 // // //       if (!intervalRef.current) {
@@ -1045,26 +1293,13 @@
 // // //     const { data } = await supabase.auth.getUser();
 
 // // //     if (!data.user) {
-// // //       setPendingStart(true);
-// // //       setShowAuthPopup(true);
+// // //       navigate("/login");
 // // //       return;
 // // //     }
 
 // // //     if (isMonitoring) await saveSessionToDB();
-
 // // //     setIsMonitoring((prev) => !prev);
 // // //   };
-
-// // //   useEffect(() => {
-// // //     const checkUser = async () => {
-// // //       const { data } = await supabase.auth.getUser();
-// // //       if (data.user && pendingStart) {
-// // //         setIsMonitoring(true);
-// // //         setPendingStart(false);
-// // //       }
-// // //     };
-// // //     checkUser();
-// // //   }, [pendingStart]);
 
 // // //   const formatTime = (min) =>
 // // //     min < 60 ? `${min} min` : `${Math.floor(min / 60)}h ${min % 60}m`;
@@ -1079,8 +1314,9 @@
 // // //   return (
 // // //     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 px-10 py-8">
 
+// // //       {/* HEADER */}
 // // //       <div className="flex justify-between items-center mb-10">
-// // //         <button onClick={() => navigate("/")} className="flex items-center gap-2 text-gray-600">
+// // //         <button onClick={() => navigate("/")}>
 // // //           <ArrowLeft size={18} /> Back
 // // //         </button>
 
@@ -1088,23 +1324,25 @@
 // // //           aAI Dashboard
 // // //         </h1>
 
-// // //         <div className="flex gap-4 items-center">
-// // //           <button onClick={() => window.open("/Progress", "_blank")} className="text-purple-600 font-medium">
+// // //         <div className="flex gap-4">
+// // //           {/* ✅ FIXED HERE */}
+// // //           <button onClick={() => navigate("/progress")}>
 // // //             Progress
 // // //           </button>
 
-// // //           <button onClick={handleLogout} className="bg-red-500 text-white px-4 py-1 rounded">
+// // //           <button onClick={handleLogout}>
 // // //             Logout
 // // //           </button>
 // // //         </div>
 // // //       </div>
 
+// // //       {/* GRID */}
 // // //       <div className="grid grid-cols-3 gap-8">
 
 // // //         <div className="bg-white p-6 rounded-xl shadow">
-// // //           <h2 className="font-semibold mb-3">Camera</h2>
+// // //           <h2>Camera</h2>
 
-// // //           <div className="h-[300px] bg-black rounded-xl flex items-center justify-center text-white">
+// // //           <div className="h-[300px] bg-black text-white flex items-center justify-center">
 // // //             {isMonitoring ? (
 // // //               <WebcamFeed
 // // //                 setBlinkRate={setBlinkRate}
@@ -1119,26 +1357,21 @@
 // // //             )}
 // // //           </div>
 
-// // //           <button
-// // //             onClick={handleToggleMonitoring}
-// // //             className={`mt-4 w-full py-2 rounded text-white ${
-// // //               isMonitoring ? "bg-red-500" : "bg-purple-500"
-// // //             }`}
-// // //           >
-// // //             {isMonitoring ? "Stop Monitoring" : "Start Monitoring"}
+// // //           <button onClick={handleToggleMonitoring}>
+// // //             {isMonitoring ? "Stop" : "Start"}
 // // //           </button>
 // // //         </div>
 
 // // //         <div className="bg-white p-6 rounded-xl shadow text-center">
-// // //           <h2 className="font-semibold mb-3">Stress Score</h2>
-// // //           <div className={`text-5xl font-bold ${getScoreColor()}`}>
+// // //           <h2>Stress Score</h2>
+// // //           <div className={`text-5xl ${getScoreColor()}`}>
 // // //             {stressScore}
 // // //           </div>
 // // //         </div>
 
 // // //         <div className="bg-white p-6 rounded-xl shadow">
 // // //           <Metric label="Screen Time" value={formatTime(screenTime)} />
-// // //           <Metric label="Blink Rate" value={`${blinkRate}`} />
+// // //           <Metric label="Blink Rate" value={blinkRate} />
 // // //           <Metric label="Distance" value={distance} />
 // // //           <Metric label="Head Position" value={headPosition} />
 // // //           <Metric label="Expression" value={expression} />
@@ -1153,8 +1386,8 @@
 // // // export default Dashboard;
 
 // // // const Metric = ({ label, value }) => (
-// // //   <div className="flex justify-between py-2 text-sm">
-// // //     <span className="text-gray-600">{label}</span>
+// // //   <div className="flex justify-between py-2">
+// // //     <span>{label}</span>
 // // //     <span>{value}</span>
 // // //   </div>
 // // // );
@@ -1195,30 +1428,23 @@
 // //     }
 // //   };
 
-// //   // ⏱️ Screen time
 // //   useEffect(() => {
 // //     if (!isMonitoring) return;
-
 // //     const timer = setInterval(() => {
 // //       setScreenTime((prev) => prev + 1);
 // //     }, 60000);
-
 // //     return () => clearInterval(timer);
 // //   }, [isMonitoring]);
 
-// //   // 📊 Collect data
 // //   useEffect(() => {
 // //     if (!isMonitoring) return;
-
 // //     const collector = setInterval(() => {
 // //       historyRef.current.blink.push(blinkRate);
 // //       historyRef.current.stress.push(stressScore);
 // //     }, 1000);
-
 // //     return () => clearInterval(collector);
 // //   }, [isMonitoring, blinkRate, stressScore]);
 
-// //   // 🔔 Notification logic
 // //   useEffect(() => {
 // //     if (!isMonitoring) return;
 
@@ -1241,7 +1467,6 @@
 // //     }
 // //   }, [stressScore, headPosition, distance, isMonitoring]);
 
-// //   // 💾 Save data
 // //   const saveSessionToDB = async () => {
 // //     try {
 // //       const history = historyRef.current;
@@ -1275,7 +1500,6 @@
 // //     }
 // //   };
 
-// //   // 🔁 Auto save
 // //   useEffect(() => {
 // //     if (isMonitoring) {
 // //       if (!intervalRef.current) {
@@ -1306,43 +1530,57 @@
 
 // //   const getScoreColor = () =>
 // //     stressScore >= 70
-// //       ? "text-green-500"
+// //       ? "text-green-400"
 // //       : stressScore >= 40
-// //       ? "text-yellow-500"
-// //       : "text-red-500";
+// //       ? "text-yellow-400"
+// //       : "text-red-400";
 
 // //   return (
-// //     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 px-10 py-8">
+// //     <div className="min-h-screen bg-gradient-to-br from-[#020617] via-[#0f172a] to-[#1e293b] text-white px-6 py-6">
 
 // //       {/* HEADER */}
 // //       <div className="flex justify-between items-center mb-10">
-// //         <button onClick={() => navigate("/")}>
-// //           <ArrowLeft size={18} /> Back
+
+// //         <button
+// //           onClick={() => navigate("/")}
+// //           className="flex items-center gap-2 text-gray-400 hover:text-white transition"
+// //         >
+// //           <ArrowLeft size={18} />
+// //           Back
 // //         </button>
 
-// //         <h1 className="text-3xl font-bold text-purple-600">
+// //         <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">
 // //           aAI Dashboard
 // //         </h1>
 
-// //         <div className="flex gap-4">
-// //           {/* ✅ FIXED HERE */}
-// //           <button onClick={() => navigate("/progress")}>
+// //         <div className="flex gap-6 text-sm">
+// //           <button
+// //             onClick={() => navigate("/progress")}
+// //             className="hover:text-purple-400 transition"
+// //           >
 // //             Progress
 // //           </button>
 
-// //           <button onClick={handleLogout}>
+// //           <button
+// //             onClick={handleLogout}
+// //             className="text-red-400 hover:text-red-500 transition"
+// //           >
 // //             Logout
 // //           </button>
 // //         </div>
 // //       </div>
 
 // //       {/* GRID */}
-// //       <div className="grid grid-cols-3 gap-8">
+// //       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-// //         <div className="bg-white p-6 rounded-xl shadow">
-// //           <h2>Camera</h2>
+// //         {/* CAMERA */}
+// //         <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-6 rounded-2xl shadow-lg hover:scale-[1.02] transition">
 
-// //           <div className="h-[300px] bg-black text-white flex items-center justify-center">
+// //           <h2 className="text-lg font-semibold mb-4 text-purple-300">
+// //             Camera
+// //           </h2>
+
+// //           <div className="h-[260px] bg-black rounded-xl flex items-center justify-center text-gray-400">
 // //             {isMonitoring ? (
 // //               <WebcamFeed
 // //                 setBlinkRate={setBlinkRate}
@@ -1357,19 +1595,41 @@
 // //             )}
 // //           </div>
 
-// //           <button onClick={handleToggleMonitoring}>
-// //             {isMonitoring ? "Stop" : "Start"}
+// //           <button
+// //             onClick={handleToggleMonitoring}
+// //             className={`mt-4 w-full py-2 rounded-xl font-medium transition ${
+// //               isMonitoring
+// //                 ? "bg-red-500 hover:bg-red-600"
+// //                 : "bg-purple-600 hover:bg-purple-700"
+// //             }`}
+// //           >
+// //             {isMonitoring ? "Stop Monitoring" : "Start Monitoring"}
 // //           </button>
 // //         </div>
 
-// //         <div className="bg-white p-6 rounded-xl shadow text-center">
-// //           <h2>Stress Score</h2>
-// //           <div className={`text-5xl ${getScoreColor()}`}>
+// //         {/* STRESS */}
+// //         <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-6 rounded-2xl shadow-lg text-center">
+
+// //           <h2 className="text-lg font-semibold mb-4 text-purple-300">
+// //             Stress Score
+// //           </h2>
+
+// //           <div className={`text-6xl font-bold ${getScoreColor()}`}>
 // //             {stressScore}
 // //           </div>
+
+// //           <p className="text-sm text-gray-400 mt-2">
+// //             Real-time analysis
+// //           </p>
 // //         </div>
 
-// //         <div className="bg-white p-6 rounded-xl shadow">
+// //         {/* METRICS */}
+// //         <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-6 rounded-2xl shadow-lg">
+
+// //           <h2 className="text-lg font-semibold mb-4 text-purple-300">
+// //             Metrics
+// //           </h2>
+
 // //           <Metric label="Screen Time" value={formatTime(screenTime)} />
 // //           <Metric label="Blink Rate" value={blinkRate} />
 // //           <Metric label="Distance" value={distance} />
@@ -1386,271 +1646,245 @@
 // // export default Dashboard;
 
 // // const Metric = ({ label, value }) => (
-// //   <div className="flex justify-between py-2">
-// //     <span>{label}</span>
-// //     <span>{value}</span>
+// //   <div className="flex justify-between py-2 border-b border-white/10 text-sm">
+// //     <span className="text-gray-400">{label}</span>
+// //     <span className="font-medium">{value}</span>
 // //   </div>
 // // );
 
 
 
+// // import { useNavigate } from "react-router-dom";
+// // import WebcamFeed from "../components/WebcamFeed";
+// // import { ArrowLeft } from "lucide-react";
+// // import { supabase } from "../lib/supabase";
+// // import { useState, useEffect, useRef } from "react";
 
-// import { useNavigate } from "react-router-dom";
-// import WebcamFeed from "../components/WebcamFeed";
-// import { ArrowLeft } from "lucide-react";
-// import { supabase } from "../lib/supabase";
-// import { useState, useEffect, useRef } from "react";
+// // const Dashboard = () => {
+// //   const navigate = useNavigate();
+// //   const badStartRef = useRef(null);
+// //   const startTimeRef = useRef(null);
 
-// const Dashboard = () => {
-//   const navigate = useNavigate();
-//   const badStartRef = useRef(null);
+// //   const [isMonitoring, setIsMonitoring] = useState(false);
+// //   const [blinkRate, setBlinkRate] = useState(0);
+// //   const [distance, setDistance] = useState("unknown");
+// //   const [expression, setExpression] = useState("neutral");
+// //   const [redness, setRedness] = useState("normal");
+// //   const [headPosition, setHeadPosition] = useState("aligned");
+// //   const [stressScore, setStressScore] = useState(100);
+// //   const [screenTime, setScreenTime] = useState(0);
 
-//   const [isMonitoring, setIsMonitoring] = useState(false);
-//   const [blinkRate, setBlinkRate] = useState(0);
-//   const [distance, setDistance] = useState("unknown");
-//   const [expression, setExpression] = useState("neutral");
-//   const [redness, setRedness] = useState("normal");
-//   const [headPosition, setHeadPosition] = useState("aligned");
-//   const [stressScore, setStressScore] = useState(100);
-//   const [screenTime, setScreenTime] = useState(0);
+// //   const historyRef = useRef({ blink: [], stress: [] });
+// //   const intervalRef = useRef(null);
 
-//   const historyRef = useRef({ blink: [], stress: [] });
-//   const intervalRef = useRef(null);
+// //   const handleLogout = async () => {
+// //     await supabase.auth.signOut();
+// //     navigate("/login");
+// //   };
 
-//   const handleLogout = async () => {
-//     await supabase.auth.signOut();
-//     navigate("/login");
-//   };
+// //   const sendNotification = (message) => {
+// //     if ("Notification" in window && Notification.permission === "granted") {
+// //       new Notification("aAI Alert 🚨", { body: message });
+// //     }
+// //   };
 
-//   const sendNotification = (message) => {
-//     if ("Notification" in window && Notification.permission === "granted") {
-//       new Notification("aAI Alert 🚨", { body: message });
-//     }
-//   };
+// //   /* ✅ FIXED: REAL TIME SCREEN TRACKING */
+// //   useEffect(() => {
+// //     if (isMonitoring) {
+// //       startTimeRef.current = Date.now();
+// //     }
+// //   }, [isMonitoring]);
 
-//   useEffect(() => {
-//     if (!isMonitoring) return;
-//     const timer = setInterval(() => {
-//       setScreenTime((prev) => prev + 1);
-//     }, 60000);
-//     return () => clearInterval(timer);
-//   }, [isMonitoring]);
+// //   useEffect(() => {
+// //     if (!isMonitoring) return;
 
-//   useEffect(() => {
-//     if (!isMonitoring) return;
-//     const collector = setInterval(() => {
-//       historyRef.current.blink.push(blinkRate);
-//       historyRef.current.stress.push(stressScore);
-//     }, 1000);
-//     return () => clearInterval(collector);
-//   }, [isMonitoring, blinkRate, stressScore]);
+// //     const timer = setInterval(() => {
+// //       const now = Date.now();
+// //       const minutes = Math.floor((now - startTimeRef.current) / 60000);
+// //       setScreenTime(minutes);
+// //     }, 5000);
 
-//   useEffect(() => {
-//     if (!isMonitoring) return;
+// //     return () => clearInterval(timer);
+// //   }, [isMonitoring]);
 
-//     const isBad =
-//       stressScore < 40 ||
-//       headPosition === "tilted" ||
-//       distance === "too close";
+// //   /* -------- HISTORY COLLECTOR -------- */
+// //   useEffect(() => {
+// //     if (!isMonitoring) return;
+// //     const collector = setInterval(() => {
+// //       historyRef.current.blink.push(blinkRate);
+// //       historyRef.current.stress.push(stressScore);
+// //     }, 1000);
+// //     return () => clearInterval(collector);
+// //   }, [isMonitoring, blinkRate, stressScore]);
 
-//     if (isBad) {
-//       if (!badStartRef.current) {
-//         badStartRef.current = Date.now();
-//       }
+// //   /* -------- ALERT SYSTEM -------- */
+// //   useEffect(() => {
+// //     if (!isMonitoring) return;
 
-//       if (Date.now() - badStartRef.current > 10000) {
-//         sendNotification("Take care of your eyes 👀");
-//         badStartRef.current = null;
-//       }
-//     } else {
-//       badStartRef.current = null;
-//     }
-//   }, [stressScore, headPosition, distance, isMonitoring]);
+// //     const isBad =
+// //       stressScore < 40 ||
+// //       headPosition === "tilted" ||
+// //       distance === "too close";
 
-//   const saveSessionToDB = async () => {
-//     try {
-//       const history = historyRef.current;
-//       if (history.blink.length === 0) return;
+// //     if (isBad) {
+// //       if (!badStartRef.current) {
+// //         badStartRef.current = Date.now();
+// //       }
 
-//       const avgBlink =
-//         history.blink.reduce((a, b) => a + b, 0) / history.blink.length;
+// //       if (Date.now() - badStartRef.current > 10000) {
+// //         sendNotification("Take care of your eyes 👀");
+// //         badStartRef.current = null;
+// //       }
+// //     } else {
+// //       badStartRef.current = null;
+// //     }
+// //   }, [stressScore, headPosition, distance, isMonitoring]);
 
-//       const avgStress =
-//         history.stress.reduce((a, b) => a + b, 0) / history.stress.length;
+// //   /* -------- SAVE TO DB -------- */
+// //   const saveSessionToDB = async () => {
+// //     try {
+// //       const history = historyRef.current;
+// //       if (history.blink.length === 0) return;
 
-//       const { data: userData } = await supabase.auth.getUser();
-//       if (!userData?.user) return;
+// //       const avgBlink =
+// //         history.blink.reduce((a, b) => a + b, 0) / history.blink.length;
 
-//       await supabase.from("sessions").insert([
-//         {
-//           user_id: userData.user.id,
-//           blink_rate: Math.round(avgBlink),
-//           stress_score: Math.round(avgStress),
-//           screen_time: screenTime,
-//           distance,
-//           head_position: headPosition,
-//           expression,
-//           redness,
-//         },
-//       ]);
+// //       const avgStress =
+// //         history.stress.reduce((a, b) => a + b, 0) / history.stress.length;
 
-//       historyRef.current = { blink: [], stress: [] };
-//     } catch (err) {
-//       console.error(err);
-//     }
-//   };
+// //       const { data: userData } = await supabase.auth.getUser();
+// //       if (!userData?.user) return;
 
-//   useEffect(() => {
-//     if (isMonitoring) {
-//       if (!intervalRef.current) {
-//         intervalRef.current = setInterval(saveSessionToDB, 300000);
-//       }
-//     } else {
-//       clearInterval(intervalRef.current);
-//       intervalRef.current = null;
-//     }
+// //       await supabase.from("sessions").insert([
+// //         {
+// //           user_id: userData.user.id,
+// //           blink_rate: Math.round(avgBlink),
+// //           stress_score: Math.round(avgStress),
+// //           screen_time: screenTime,
+// //           distance,
+// //           head_position: headPosition,
+// //           expression,
+// //           redness,
+// //         },
+// //       ]);
 
-//     return () => clearInterval(intervalRef.current);
-//   }, [isMonitoring]);
+// //       historyRef.current = { blink: [], stress: [] };
+// //     } catch (err) {
+// //       console.error(err);
+// //     }
+// //   };
 
-//   const handleToggleMonitoring = async () => {
-//     const { data } = await supabase.auth.getUser();
+// //   useEffect(() => {
+// //     if (isMonitoring) {
+// //       if (!intervalRef.current) {
+// //         intervalRef.current = setInterval(saveSessionToDB, 300000);
+// //       }
+// //     } else {
+// //       clearInterval(intervalRef.current);
+// //       intervalRef.current = null;
+// //     }
 
-//     if (!data.user) {
-//       navigate("/login");
-//       return;
-//     }
+// //     return () => clearInterval(intervalRef.current);
+// //   }, [isMonitoring]);
 
-//     if (isMonitoring) await saveSessionToDB();
-//     setIsMonitoring((prev) => !prev);
-//   };
+// //   /* -------- TOGGLE -------- */
+// //   const handleToggleMonitoring = async () => {
+// //     const { data } = await supabase.auth.getUser();
 
-//   const formatTime = (min) =>
-//     min < 60 ? `${min} min` : `${Math.floor(min / 60)}h ${min % 60}m`;
+// //     if (!data.user) {
+// //       navigate("/login");
+// //       return;
+// //     }
 
-//   const getScoreColor = () =>
-//     stressScore >= 70
-//       ? "text-green-400"
-//       : stressScore >= 40
-//       ? "text-yellow-400"
-//       : "text-red-400";
+// //     if (isMonitoring) await saveSessionToDB();
+// //     setIsMonitoring((prev) => !prev);
+// //   };
 
-//   return (
-//     <div className="min-h-screen bg-gradient-to-br from-[#020617] via-[#0f172a] to-[#1e293b] text-white px-6 py-6">
+// //   const formatTime = (min) =>
+// //     min < 60 ? `${min} min` : `${Math.floor(min / 60)}h ${min % 60}m`;
 
-//       {/* HEADER */}
-//       <div className="flex justify-between items-center mb-10">
+// //   const getScoreColor = () =>
+// //     stressScore >= 70
+// //       ? "text-green-400"
+// //       : stressScore >= 40
+// //       ? "text-yellow-400"
+// //       : "text-red-400";
 
-//         <button
-//           onClick={() => navigate("/")}
-//           className="flex items-center gap-2 text-gray-400 hover:text-white transition"
-//         >
-//           <ArrowLeft size={18} />
-//           Back
-//         </button>
+// //   return (
+// //     <div className="min-h-screen bg-gradient-to-br from-[#020617] via-[#0f172a] to-[#1e293b] text-white px-6 py-6">
 
-//         <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">
-//           aAI Dashboard
-//         </h1>
+// //       <div className="flex justify-between items-center mb-10">
 
-//         <div className="flex gap-6 text-sm">
-//           <button
-//             onClick={() => navigate("/progress")}
-//             className="hover:text-purple-400 transition"
-//           >
-//             Progress
-//           </button>
+// //         <button
+// //           onClick={() => navigate("/")}
+// //           className="flex items-center gap-2 text-gray-400 hover:text-white transition"
+// //         >
+// //           <ArrowLeft size={18} />
+// //           Back
+// //         </button>
 
-//           <button
-//             onClick={handleLogout}
-//             className="text-red-400 hover:text-red-500 transition"
-//           >
-//             Logout
-//           </button>
-//         </div>
-//       </div>
+// //         <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">
+// //           aAI Dashboard
+// //         </h1>
 
-//       {/* GRID */}
-//       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+// //         <div className="flex gap-6 text-sm">
+// //           <button onClick={() => navigate("/progress")}>
+// //             Progress
+// //           </button>
+// //           <button onClick={handleLogout} className="text-red-400">
+// //             Logout
+// //           </button>
+// //         </div>
+// //       </div>
 
-//         {/* CAMERA */}
-//         <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-6 rounded-2xl shadow-lg hover:scale-[1.02] transition">
+// //       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-//           <h2 className="text-lg font-semibold mb-4 text-purple-300">
-//             Camera
-//           </h2>
+// //         <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-6 rounded-2xl">
+// //           <h2 className="mb-4">Camera</h2>
 
-//           <div className="h-[260px] bg-black rounded-xl flex items-center justify-center text-gray-400">
-//             {isMonitoring ? (
-//               <WebcamFeed
-//                 setBlinkRate={setBlinkRate}
-//                 setDistance={setDistance}
-//                 setRedness={setRedness}
-//                 setStressScore={setStressScore}
-//                 setHeadPosition={setHeadPosition}
-//                 setExpression={setExpression}
-//               />
-//             ) : (
-//               "Camera Off"
-//             )}
-//           </div>
+// //           <div className="h-[260px] bg-black rounded-xl flex items-center justify-center">
+// //             {isMonitoring ? (
+// //               <WebcamFeed
+// //                 setBlinkRate={setBlinkRate}
+// //                 setDistance={setDistance}
+// //                 setRedness={setRedness}
+// //                 setStressScore={setStressScore}
+// //                 setHeadPosition={setHeadPosition}
+// //                 setExpression={setExpression}
+// //               />
+// //             ) : (
+// //               "Camera Off"
+// //             )}
+// //           </div>
 
-//           <button
-//             onClick={handleToggleMonitoring}
-//             className={`mt-4 w-full py-2 rounded-xl font-medium transition ${
-//               isMonitoring
-//                 ? "bg-red-500 hover:bg-red-600"
-//                 : "bg-purple-600 hover:bg-purple-700"
-//             }`}
-//           >
-//             {isMonitoring ? "Stop Monitoring" : "Start Monitoring"}
-//           </button>
-//         </div>
+// //           <button onClick={handleToggleMonitoring} className="mt-4 w-full py-2 rounded-xl bg-purple-600">
+// //             {isMonitoring ? "Stop Monitoring" : "Start Monitoring"}
+// //           </button>
+// //         </div>
 
-//         {/* STRESS */}
-//         <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-6 rounded-2xl shadow-lg text-center">
+// //         <div className="bg-white/5 p-6 rounded-2xl text-center">
+// //           <h2>Stress Score</h2>
+// //           <div className={`text-6xl ${getScoreColor()}`}>{stressScore}</div>
+// //         </div>
 
-//           <h2 className="text-lg font-semibold mb-4 text-purple-300">
-//             Stress Score
-//           </h2>
+// //         <div className="bg-white/5 p-6 rounded-2xl">
+// //           <Metric label="Screen Time" value={formatTime(screenTime)} />
+// //           <Metric label="Blink Rate" value={blinkRate} />
+// //         </div>
 
-//           <div className={`text-6xl font-bold ${getScoreColor()}`}>
-//             {stressScore}
-//           </div>
+// //       </div>
+// //     </div>
+// //   );
+// // };
 
-//           <p className="text-sm text-gray-400 mt-2">
-//             Real-time analysis
-//           </p>
-//         </div>
+// // export default Dashboard;
 
-//         {/* METRICS */}
-//         <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-6 rounded-2xl shadow-lg">
-
-//           <h2 className="text-lg font-semibold mb-4 text-purple-300">
-//             Metrics
-//           </h2>
-
-//           <Metric label="Screen Time" value={formatTime(screenTime)} />
-//           <Metric label="Blink Rate" value={blinkRate} />
-//           <Metric label="Distance" value={distance} />
-//           <Metric label="Head Position" value={headPosition} />
-//           <Metric label="Expression" value={expression} />
-//           <Metric label="Redness" value={redness} />
-//         </div>
-
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default Dashboard;
-
-// const Metric = ({ label, value }) => (
-//   <div className="flex justify-between py-2 border-b border-white/10 text-sm">
-//     <span className="text-gray-400">{label}</span>
-//     <span className="font-medium">{value}</span>
-//   </div>
-// );
+// // const Metric = ({ label, value }) => (
+// //   <div className="flex justify-between py-2">
+// //     <span>{label}</span>
+// //     <span>{value}</span>
+// //   </div>
+// // );
 
 
 
@@ -1898,6 +2132,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const badStartRef = useRef(null);
   const startTimeRef = useRef(null);
+  const webcamRef = useRef(null);
 
   const [isMonitoring, setIsMonitoring] = useState(false);
   const [blinkRate, setBlinkRate] = useState(0);
@@ -1922,7 +2157,6 @@ const Dashboard = () => {
     }
   };
 
-  /* ✅ FIXED: REAL TIME SCREEN TRACKING */
   useEffect(() => {
     if (isMonitoring) {
       startTimeRef.current = Date.now();
@@ -1941,7 +2175,6 @@ const Dashboard = () => {
     return () => clearInterval(timer);
   }, [isMonitoring]);
 
-  /* -------- HISTORY COLLECTOR -------- */
   useEffect(() => {
     if (!isMonitoring) return;
     const collector = setInterval(() => {
@@ -1951,7 +2184,6 @@ const Dashboard = () => {
     return () => clearInterval(collector);
   }, [isMonitoring, blinkRate, stressScore]);
 
-  /* -------- ALERT SYSTEM -------- */
   useEffect(() => {
     if (!isMonitoring) return;
 
@@ -1974,7 +2206,6 @@ const Dashboard = () => {
     }
   }, [stressScore, headPosition, distance, isMonitoring]);
 
-  /* -------- SAVE TO DB -------- */
   const saveSessionToDB = async () => {
     try {
       const history = historyRef.current;
@@ -2021,7 +2252,6 @@ const Dashboard = () => {
     return () => clearInterval(intervalRef.current);
   }, [isMonitoring]);
 
-  /* -------- TOGGLE -------- */
   const handleToggleMonitoring = async () => {
     const { data } = await supabase.auth.getUser();
 
@@ -2045,27 +2275,34 @@ const Dashboard = () => {
       : "text-red-400";
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#020617] via-[#0f172a] to-[#1e293b] text-white px-6 py-6">
+    <div className="min-h-screen bg-[#0B1220] text-[#E5E7EB] px-6 py-6">
 
       <div className="flex justify-between items-center mb-10">
 
         <button
           onClick={() => navigate("/")}
-          className="flex items-center gap-2 text-gray-400 hover:text-white transition"
+          className="flex items-center gap-2 text-[#9CA3AF] hover:text-white transition"
         >
           <ArrowLeft size={18} />
           Back
         </button>
 
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-[#A855F7] to-[#EC4899] bg-clip-text text-transparent">
           aAI Dashboard
         </h1>
 
         <div className="flex gap-6 text-sm">
-          <button onClick={() => navigate("/progress")}>
+          <button
+            onClick={() => navigate("/progress")}
+            className="hover:text-[#A855F7]"
+          >
             Progress
           </button>
-          <button onClick={handleLogout} className="text-red-400">
+
+          <button
+            onClick={handleLogout}
+            className="text-red-400 hover:text-red-500"
+          >
             Logout
           </button>
         </div>
@@ -2073,12 +2310,14 @@ const Dashboard = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-        <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-6 rounded-2xl">
-          <h2 className="mb-4">Camera</h2>
+        <div className="bg-gradient-to-br from-[#111827] to-[#1F2937] p-6 rounded-2xl shadow-xl">
+
+          <h2 className="mb-4 font-semibold">Camera</h2>
 
           <div className="h-[260px] bg-black rounded-xl flex items-center justify-center">
             {isMonitoring ? (
               <WebcamFeed
+                ref={webcamRef}
                 setBlinkRate={setBlinkRate}
                 setDistance={setDistance}
                 setRedness={setRedness}
@@ -2087,23 +2326,48 @@ const Dashboard = () => {
                 setExpression={setExpression}
               />
             ) : (
-              "Camera Off"
+              <span className="text-[#9CA3AF]">Camera Off</span>
             )}
           </div>
 
-          <button onClick={handleToggleMonitoring} className="mt-4 w-full py-2 rounded-xl bg-purple-600">
+          <button
+            onClick={handleToggleMonitoring}
+            className="mt-4 w-full py-2 rounded-xl font-medium bg-gradient-to-r from-[#A855F7] to-[#EC4899] hover:scale-[1.02] transition"
+          >
             {isMonitoring ? "Stop Monitoring" : "Start Monitoring"}
+          </button>
+
+          <button
+            onClick={() => webcamRef.current?.enablePiP()}
+            className="mt-2 w-full py-2 rounded-xl font-medium bg-gradient-to-r from-[#A855F7] to-[#EC4899] hover:brightness-110 transition"
+          >
+            Enable Floating Mode
           </button>
         </div>
 
-        <div className="bg-white/5 p-6 rounded-2xl text-center">
-          <h2>Stress Score</h2>
-          <div className={`text-6xl ${getScoreColor()}`}>{stressScore}</div>
+        <div className="bg-gradient-to-br from-[#111827] to-[#1F2937] p-6 rounded-2xl shadow-xl text-center">
+
+          <h2 className="mb-4 font-semibold">Stress Score</h2>
+
+          <div className={`text-6xl font-bold ${getScoreColor()}`}>
+            {stressScore}
+          </div>
+
+          <p className="text-sm text-[#9CA3AF] mt-2">
+            Real-time analysis
+          </p>
         </div>
 
-        <div className="bg-white/5 p-6 rounded-2xl">
+        <div className="bg-gradient-to-br from-[#111827] to-[#1F2937] p-6 rounded-2xl shadow-xl">
+
+          <h2 className="mb-4 font-semibold">Metrics</h2>
+
           <Metric label="Screen Time" value={formatTime(screenTime)} />
           <Metric label="Blink Rate" value={blinkRate} />
+          <Metric label="Distance" value={distance} />
+          <Metric label="Head Position" value={headPosition} />
+          <Metric label="Expression" value={expression} />
+          <Metric label="Redness" value={redness} />
         </div>
 
       </div>
@@ -2114,8 +2378,8 @@ const Dashboard = () => {
 export default Dashboard;
 
 const Metric = ({ label, value }) => (
-  <div className="flex justify-between py-2">
-    <span>{label}</span>
-    <span>{value}</span>
+  <div className="flex justify-between py-2 border-b border-white/10 text-sm">
+    <span className="text-[#9CA3AF]">{label}</span>
+    <span className="font-medium text-[#E5E7EB]">{value}</span>
   </div>
 );
