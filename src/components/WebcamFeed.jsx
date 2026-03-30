@@ -1,3 +1,236 @@
+// // // import { useEffect, useRef } from "react";
+
+// // // const WebcamFeed = ({
+// // //   setBlinkRate = () => {},
+// // //   setDistance = () => {},
+// // //   setRedness = () => {},
+// // //   setStressScore = () => {},
+// // //   setHeadPosition = () => {},
+// // //   setExpression = () => {},
+// // //   triggerAlert = () => {}
+// // // }) => {
+
+// // //   const videoRef = useRef(null);
+// // //   const canvasRef = useRef(null);
+
+// // //   const faceMeshRef = useRef(null);
+// // //   const cameraRef = useRef(null);
+
+// // //   const blinkTimes = useRef([]);
+// // //   const eyeClosed = useRef(false);
+// // //   const lastBlinkTime = useRef(0);
+
+// // //   const eyeHistory = useRef([]);
+// // //   const rednessHistory = useRef([]);
+
+// // //   const expressionRef = useRef("focused");
+// // //   const distanceRef = useRef("optimal");
+// // //   const headRef = useRef("aligned");
+
+// // //   const smoothedScore = useRef(100);
+// // //   const smooth = (prev, current) => prev * 0.8 + current * 0.2;
+
+// // //   const detectRedness = (imageData) => {
+// // //     let redPixels = 0;
+// // //     let total = 0;
+// // //     const data = imageData.data;
+
+// // //     for (let i = 0; i < data.length; i += 4) {
+// // //       const r = data[i];
+// // //       const g = data[i + 1];
+// // //       const b = data[i + 2];
+
+// // //       if (r > g * 1.15 && r > b * 1.15) redPixels++;
+// // //       total++;
+// // //     }
+
+// // //     return redPixels / total;
+// // //   };
+
+// // //   useEffect(() => {
+
+// // //     if (!window.FaceMesh || !window.Camera) {
+// // //       console.error("MediaPipe not loaded");
+// // //       return;
+// // //     }
+
+// // //     const faceMesh = new window.FaceMesh({
+// // //       locateFile: (file) =>
+// // //         `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
+// // //     });
+
+// // //     faceMesh.setOptions({
+// // //       maxNumFaces: 1,
+// // //       refineLandmarks: true
+// // //     });
+
+// // //     faceMesh.onResults((results) => {
+
+// // //       const canvas = canvasRef.current;
+// // //       if (!canvas) return;
+
+// // //       const ctx = canvas.getContext("2d");
+// // //       ctx.clearRect(0, 0, canvas.width, canvas.height);
+// // //       ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
+
+// // //       if (!results.multiFaceLandmarks?.length) return;
+
+// // //       const lm = results.multiFaceLandmarks[0];
+
+// // //       /* ---------- BLINK ---------- */
+// // //       const raw = Math.abs(lm[159].y - lm[145].y);
+
+// // //       eyeHistory.current.push(raw);
+// // //       if (eyeHistory.current.length > 5) eyeHistory.current.shift();
+
+// // //       const avgEye =
+// // //         eyeHistory.current.reduce((a, b) => a + b, 0) /
+// // //         eyeHistory.current.length;
+
+// // //       if (avgEye < 0.025 && !eyeClosed.current)
+// // //         eyeClosed.current = true;
+
+// // //       if (avgEye > 0.03 && eyeClosed.current) {
+// // //         const now = Date.now();
+// // //         if (now - lastBlinkTime.current > 150) {
+// // //           blinkTimes.current.push(now);
+// // //           lastBlinkTime.current = now;
+// // //         }
+// // //         eyeClosed.current = false;
+// // //       }
+
+// // //       /* ---------- DISTANCE ---------- */
+// // //       const z = lm[1].z;
+
+// // //       if (z < -0.10) distanceRef.current = "too close";
+// // //       else if (z > -0.07) distanceRef.current = "too far";
+// // //       else distanceRef.current = "optimal";
+
+// // //       setDistance(distanceRef.current);
+
+// // //       /* ---------- HEAD ---------- */
+// // //       const tilt =
+// // //         (lm[263].y - lm[33].y) /
+// // //         (lm[263].x - lm[33].x);
+
+// // //       const headState = Math.abs(tilt) > 0.1 ? "tilted" : "aligned";
+// // //       headRef.current = headState;
+// // //       setHeadPosition(headState);
+
+// // //       /* ---------- EXPRESSION ---------- */
+// // //       const mouthOpen = Math.abs(lm[13].y - lm[14].y);
+// // //       const mouthWidth = Math.abs(lm[61].x - lm[291].x);
+// // //       const browHeight = Math.abs(lm[65].y - lm[295].y);
+
+// // //       let expression = "focused";
+
+// // //       if (avgEye < 0.015) expression = "drowsy";
+// // //       else if (mouthOpen > 0.06) expression = "yawning";
+// // //       else if (mouthWidth > 0.07 && avgEye > 0.02) expression = "relaxed";
+// // //       else if (avgEye < 0.02 && browHeight < 0.02) expression = "strained";
+
+// // //       if (expressionRef.current !== expression) {
+// // //         expressionRef.current = expression;
+// // //         setExpression(expression);
+// // //       }
+
+// // //       /* ---------- REDNESS ---------- */
+// // //       const lx = lm[33].x * canvas.width;
+// // //       const ly = lm[33].y * canvas.height;
+
+// // //       if (lx > 20 && ly > 20 && lx < canvas.width - 20 && ly < canvas.height - 20) {
+
+// // //         const region = ctx.getImageData(lx - 10, ly - 10, 20, 20);
+// // //         const redness = detectRedness(region);
+
+// // //         rednessHistory.current.push(redness);
+// // //         if (rednessHistory.current.length > 10)
+// // //           rednessHistory.current.shift();
+
+// // //         const avgRed =
+// // //           rednessHistory.current.reduce((a, b) => a + b, 0) /
+// // //           rednessHistory.current.length;
+
+// // //         if (avgRed > 0.45) setRedness("high");
+// // //         else if (avgRed > 0.30) setRedness("moderate");
+// // //         else setRedness("normal");
+// // //       }
+
+// // //     });
+
+// // //     faceMeshRef.current = faceMesh;
+
+// // //     const camera = new window.Camera(videoRef.current, {
+// // //       onFrame: async () => {
+// // //         await faceMeshRef.current.send({ image: videoRef.current });
+// // //       },
+// // //       width: 640,
+// // //       height: 480
+// // //     });
+
+// // //     camera.start();
+// // //     cameraRef.current = camera;
+
+// // //     /* ---------- MAIN LOOP ---------- */
+// // //     const interval = setInterval(() => {
+
+// // //       const now = Date.now();
+
+// // //       blinkTimes.current =
+// // //         blinkTimes.current.filter(t => now - t < 60000);
+
+// // //       const rate = blinkTimes.current.length;
+// // //       setBlinkRate(rate);
+
+// // //       let score = 100;
+
+// // //       if (rate < 12) score -= 10;
+// // //       if (rate < 8) score -= 15;
+// // //       if (rate < 5) score -= 20;
+
+// // //       if (distanceRef.current === "too close") score -= 10;
+// // //       if (distanceRef.current === "too far") score -= 5;
+
+// // //       if (headRef.current === "tilted") score -= 8;
+
+// // //       if (expressionRef.current === "drowsy") score -= 20;
+// // //       if (expressionRef.current === "strained") score -= 15;
+
+// // //       const redness =
+// // //         rednessHistory.current.reduce((a, b) => a + b, 0) /
+// // //         (rednessHistory.current.length || 1);
+
+// // //       if (redness > 0.45) score -= 10;
+
+// // //       score = Math.max(0, Math.min(100, score));
+
+// // //       smoothedScore.current = smooth(smoothedScore.current, score);
+// // //       setStressScore(Math.round(smoothedScore.current));
+
+// // //     }, 1000);
+
+// // //     return () => {
+// // //       clearInterval(interval);
+// // //       cameraRef.current?.stop();
+// // //       faceMeshRef.current?.close();
+// // //     };
+
+// // //   }, []);
+
+// // //   return (
+// // //     <div className="w-full h-full">
+// // //       <video ref={videoRef} className="hidden" />
+// // //       <canvas
+// // //         ref={canvasRef}
+// // //         width="640"
+// // //         height="480"
+// // //         className="rounded-lg w-full h-full object-cover scale-x-[-1]"
+// // //       />
+// // //     </div>
+// // //   );
+// // // };
+
+// // // export default WebcamFeed;
 // // import { useEffect, useRef } from "react";
 
 // // const WebcamFeed = ({
@@ -6,8 +239,7 @@
 // //   setRedness = () => {},
 // //   setStressScore = () => {},
 // //   setHeadPosition = () => {},
-// //   setExpression = () => {},
-// //   triggerAlert = () => {}
+// //   setExpression = () => {}
 // // }) => {
 
 // //   const videoRef = useRef(null);
@@ -33,6 +265,7 @@
 // //   const detectRedness = (imageData) => {
 // //     let redPixels = 0;
 // //     let total = 0;
+
 // //     const data = imageData.data;
 
 // //     for (let i = 0; i < data.length; i += 4) {
@@ -56,7 +289,7 @@
 
 // //     const faceMesh = new window.FaceMesh({
 // //       locateFile: (file) =>
-// //         `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
+// //         `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4/${file}`
 // //     });
 
 // //     faceMesh.setOptions({
@@ -139,8 +372,8 @@
 // //       const ly = lm[33].y * canvas.height;
 
 // //       if (lx > 20 && ly > 20 && lx < canvas.width - 20 && ly < canvas.height - 20) {
-
 // //         const region = ctx.getImageData(lx - 10, ly - 10, 20, 20);
+
 // //         const redness = detectRedness(region);
 
 // //         rednessHistory.current.push(redness);
@@ -162,7 +395,11 @@
 
 // //     const camera = new window.Camera(videoRef.current, {
 // //       onFrame: async () => {
-// //         await faceMeshRef.current.send({ image: videoRef.current });
+// //         if (videoRef.current.readyState === 4) {
+// //           await faceMeshRef.current.send({
+// //             image: videoRef.current
+// //           });
+// //         }
 // //       },
 // //       width: 640,
 // //       height: 480
@@ -231,1317 +468,1336 @@
 // // };
 
 // // export default WebcamFeed;
-// import { useEffect, useRef } from "react";
 
-// const WebcamFeed = ({
-//   setBlinkRate = () => {},
-//   setDistance = () => {},
-//   setRedness = () => {},
-//   setStressScore = () => {},
-//   setHeadPosition = () => {},
-//   setExpression = () => {}
-// }) => {
+// // import { useEffect, useRef } from "react";
+
+// // const WebcamFeed = ({
+// //   setBlinkRate = () => {},
+// //   setDistance = () => {},
+// //   setRedness = () => {},
+// //   setStressScore = () => {},
+// //   setHeadPosition = () => {},
+// //   setExpression = () => {}
+// // }) => {
+
+// //   const videoRef = useRef(null);
+// //   const canvasRef = useRef(null);
+
+// //   const faceMeshRef = useRef(null);
+// //   const cameraRef = useRef(null);
+
+// //   const blinkTimes = useRef([]);
+// //   const eyeClosed = useRef(false);
+// //   const lastBlinkTime = useRef(0);
+
+// //   const eyeHistory = useRef([]);
+// //   const rednessHistory = useRef([]);
+
+// //   const expressionRef = useRef("focused");
+// //   const distanceRef = useRef("optimal");
+// //   const headRef = useRef("aligned");
+
+// //   const smoothedScore = useRef(100);
+// //   const smooth = (prev, current) => prev * 0.8 + current * 0.2;
+
+// //   /* ---------- LOAD MEDIAPIPE SAFELY ---------- */
+// //   const loadScript = (src) => {
+// //     return new Promise((resolve, reject) => {
+// //       if (document.querySelector(`script[src="${src}"]`)) {
+// //         resolve();
+// //         return;
+// //       }
+
+// //       const script = document.createElement("script");
+// //       script.src = src;
+// //       script.async = true;
+// //       script.onload = resolve;
+// //       script.onerror = reject;
+// //       document.body.appendChild(script);
+// //     });
+// //   };
+
+// //   const detectRedness = (imageData) => {
+// //     let redPixels = 0;
+// //     let total = 0;
+// //     const data = imageData.data;
+
+// //     for (let i = 0; i < data.length; i += 4) {
+// //       const r = data[i];
+// //       const g = data[i + 1];
+// //       const b = data[i + 2];
+
+// //       if (r > g * 1.15 && r > b * 1.15) redPixels++;
+// //       total++;
+// //     }
+
+// //     return redPixels / total;
+// //   };
+
+// //   useEffect(() => {
+
+// //     let interval;
+
+// //     const init = async () => {
+// //       try {
+// //         /* 🔥 FIX: Load correct MediaPipe (no WASM crash) */
+// //         await loadScript("https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4/face_mesh.js");
+// //         await loadScript("https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js");
+
+// //         if (!window.FaceMesh || !window.Camera) {
+// //           console.error("MediaPipe failed to load");
+// //           return;
+// //         }
+
+// //         const faceMesh = new window.FaceMesh({
+// //           locateFile: (file) =>
+// //             `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4/${file}`
+// //         });
+
+// //         faceMesh.setOptions({
+// //           maxNumFaces: 1,
+// //           refineLandmarks: true,
+// //           minDetectionConfidence: 0.5,
+// //           minTrackingConfidence: 0.5
+// //         });
+
+// //         faceMesh.onResults((results) => {
+
+// //           const canvas = canvasRef.current;
+// //           if (!canvas) return;
+
+// //           const ctx = canvas.getContext("2d");
+// //           ctx.clearRect(0, 0, canvas.width, canvas.height);
+// //           ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
 
-//   const videoRef = useRef(null);
-//   const canvasRef = useRef(null);
+// //           if (!results.multiFaceLandmarks?.length) return;
 
-//   const faceMeshRef = useRef(null);
-//   const cameraRef = useRef(null);
+// //           const lm = results.multiFaceLandmarks[0];
 
-//   const blinkTimes = useRef([]);
-//   const eyeClosed = useRef(false);
-//   const lastBlinkTime = useRef(0);
+// //           /* ---------- BLINK ---------- */
+// //           const raw = Math.abs(lm[159].y - lm[145].y);
 
-//   const eyeHistory = useRef([]);
-//   const rednessHistory = useRef([]);
+// //           eyeHistory.current.push(raw);
+// //           if (eyeHistory.current.length > 5) eyeHistory.current.shift();
 
-//   const expressionRef = useRef("focused");
-//   const distanceRef = useRef("optimal");
-//   const headRef = useRef("aligned");
+// //           const avgEye =
+// //             eyeHistory.current.reduce((a, b) => a + b, 0) /
+// //             eyeHistory.current.length;
 
-//   const smoothedScore = useRef(100);
-//   const smooth = (prev, current) => prev * 0.8 + current * 0.2;
+// //           if (avgEye < 0.025 && !eyeClosed.current)
+// //             eyeClosed.current = true;
 
-//   const detectRedness = (imageData) => {
-//     let redPixels = 0;
-//     let total = 0;
+// //           if (avgEye > 0.03 && eyeClosed.current) {
+// //             const now = Date.now();
+// //             if (now - lastBlinkTime.current > 150) {
+// //               blinkTimes.current.push(now);
+// //               lastBlinkTime.current = now;
+// //             }
+// //             eyeClosed.current = false;
+// //           }
 
-//     const data = imageData.data;
+// //           /* ---------- DISTANCE ---------- */
+// //           const z = lm[1].z;
 
-//     for (let i = 0; i < data.length; i += 4) {
-//       const r = data[i];
-//       const g = data[i + 1];
-//       const b = data[i + 2];
+// //           if (z < -0.10) distanceRef.current = "too close";
+// //           else if (z > -0.07) distanceRef.current = "too far";
+// //           else distanceRef.current = "optimal";
 
-//       if (r > g * 1.15 && r > b * 1.15) redPixels++;
-//       total++;
-//     }
+// //           setDistance(distanceRef.current);
 
-//     return redPixels / total;
-//   };
+// //           /* ---------- HEAD ---------- */
+// //           const tilt =
+// //             (lm[263].y - lm[33].y) /
+// //             (lm[263].x - lm[33].x);
 
-//   useEffect(() => {
+// //           const headState = Math.abs(tilt) > 0.1 ? "tilted" : "aligned";
+// //           headRef.current = headState;
+// //           setHeadPosition(headState);
 
-//     if (!window.FaceMesh || !window.Camera) {
-//       console.error("MediaPipe not loaded");
-//       return;
-//     }
+// //           /* ---------- EXPRESSION ---------- */
+// //           const mouthOpen = Math.abs(lm[13].y - lm[14].y);
+// //           const mouthWidth = Math.abs(lm[61].x - lm[291].x);
+// //           const browHeight = Math.abs(lm[65].y - lm[295].y);
 
-//     const faceMesh = new window.FaceMesh({
-//       locateFile: (file) =>
-//         `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4/${file}`
-//     });
+// //           let expression = "focused";
 
-//     faceMesh.setOptions({
-//       maxNumFaces: 1,
-//       refineLandmarks: true
-//     });
+// //           if (avgEye < 0.015) expression = "drowsy";
+// //           else if (mouthOpen > 0.06) expression = "yawning";
+// //           else if (mouthWidth > 0.07 && avgEye > 0.02) expression = "relaxed";
+// //           else if (avgEye < 0.02 && browHeight < 0.02) expression = "strained";
 
-//     faceMesh.onResults((results) => {
+// //           if (expressionRef.current !== expression) {
+// //             expressionRef.current = expression;
+// //             setExpression(expression);
+// //           }
 
-//       const canvas = canvasRef.current;
-//       if (!canvas) return;
+// //           /* ---------- REDNESS ---------- */
+// //           const lx = lm[33].x * canvas.width;
+// //           const ly = lm[33].y * canvas.height;
 
-//       const ctx = canvas.getContext("2d");
-//       ctx.clearRect(0, 0, canvas.width, canvas.height);
-//       ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
+// //           if (lx > 20 && ly > 20 && lx < canvas.width - 20 && ly < canvas.height - 20) {
+// //             const region = ctx.getImageData(lx - 10, ly - 10, 20, 20);
+// //             const redness = detectRedness(region);
 
-//       if (!results.multiFaceLandmarks?.length) return;
+// //             rednessHistory.current.push(redness);
+// //             if (rednessHistory.current.length > 10)
+// //               rednessHistory.current.shift();
 
-//       const lm = results.multiFaceLandmarks[0];
+// //             const avgRed =
+// //               rednessHistory.current.reduce((a, b) => a + b, 0) /
+// //               rednessHistory.current.length;
 
-//       /* ---------- BLINK ---------- */
-//       const raw = Math.abs(lm[159].y - lm[145].y);
+// //             if (avgRed > 0.45) setRedness("high");
+// //             else if (avgRed > 0.30) setRedness("moderate");
+// //             else setRedness("normal");
+// //           }
 
-//       eyeHistory.current.push(raw);
-//       if (eyeHistory.current.length > 5) eyeHistory.current.shift();
+// //         });
 
-//       const avgEye =
-//         eyeHistory.current.reduce((a, b) => a + b, 0) /
-//         eyeHistory.current.length;
+// //         faceMeshRef.current = faceMesh;
 
-//       if (avgEye < 0.025 && !eyeClosed.current)
-//         eyeClosed.current = true;
+// //         const camera = new window.Camera(videoRef.current, {
+// //           onFrame: async () => {
+// //             if (videoRef.current.readyState === 4) {
+// //               await faceMesh.send({ image: videoRef.current });
+// //             }
+// //           },
+// //           width: 640,
+// //           height: 480
+// //         });
 
-//       if (avgEye > 0.03 && eyeClosed.current) {
-//         const now = Date.now();
-//         if (now - lastBlinkTime.current > 150) {
-//           blinkTimes.current.push(now);
-//           lastBlinkTime.current = now;
-//         }
-//         eyeClosed.current = false;
-//       }
+// //         camera.start();
+// //         cameraRef.current = camera;
 
-//       /* ---------- DISTANCE ---------- */
-//       const z = lm[1].z;
+// //         /* ---------- MAIN LOOP ---------- */
+// //         interval = setInterval(() => {
 
-//       if (z < -0.10) distanceRef.current = "too close";
-//       else if (z > -0.07) distanceRef.current = "too far";
-//       else distanceRef.current = "optimal";
+// //           const now = Date.now();
 
-//       setDistance(distanceRef.current);
+// //           blinkTimes.current =
+// //             blinkTimes.current.filter(t => now - t < 60000);
 
-//       /* ---------- HEAD ---------- */
-//       const tilt =
-//         (lm[263].y - lm[33].y) /
-//         (lm[263].x - lm[33].x);
+// //           const rate = blinkTimes.current.length;
+// //           setBlinkRate(rate);
 
-//       const headState = Math.abs(tilt) > 0.1 ? "tilted" : "aligned";
-//       headRef.current = headState;
-//       setHeadPosition(headState);
+// //           let score = 100;
 
-//       /* ---------- EXPRESSION ---------- */
-//       const mouthOpen = Math.abs(lm[13].y - lm[14].y);
-//       const mouthWidth = Math.abs(lm[61].x - lm[291].x);
-//       const browHeight = Math.abs(lm[65].y - lm[295].y);
+// //           if (rate < 12) score -= 10;
+// //           if (rate < 8) score -= 15;
+// //           if (rate < 5) score -= 20;
 
-//       let expression = "focused";
+// //           if (distanceRef.current === "too close") score -= 10;
+// //           if (distanceRef.current === "too far") score -= 5;
 
-//       if (avgEye < 0.015) expression = "drowsy";
-//       else if (mouthOpen > 0.06) expression = "yawning";
-//       else if (mouthWidth > 0.07 && avgEye > 0.02) expression = "relaxed";
-//       else if (avgEye < 0.02 && browHeight < 0.02) expression = "strained";
+// //           if (headRef.current === "tilted") score -= 8;
 
-//       if (expressionRef.current !== expression) {
-//         expressionRef.current = expression;
-//         setExpression(expression);
-//       }
+// //           if (expressionRef.current === "drowsy") score -= 20;
+// //           if (expressionRef.current === "strained") score -= 15;
 
-//       /* ---------- REDNESS ---------- */
-//       const lx = lm[33].x * canvas.width;
-//       const ly = lm[33].y * canvas.height;
+// //           const redness =
+// //             rednessHistory.current.reduce((a, b) => a + b, 0) /
+// //             (rednessHistory.current.length || 1);
 
-//       if (lx > 20 && ly > 20 && lx < canvas.width - 20 && ly < canvas.height - 20) {
-//         const region = ctx.getImageData(lx - 10, ly - 10, 20, 20);
+// //           if (redness > 0.45) score -= 10;
 
-//         const redness = detectRedness(region);
+// //           score = Math.max(0, Math.min(100, score));
 
-//         rednessHistory.current.push(redness);
-//         if (rednessHistory.current.length > 10)
-//           rednessHistory.current.shift();
+// //           smoothedScore.current = smooth(smoothedScore.current, score);
+// //           setStressScore(Math.round(smoothedScore.current));
 
-//         const avgRed =
-//           rednessHistory.current.reduce((a, b) => a + b, 0) /
-//           rednessHistory.current.length;
+// //         }, 1000);
 
-//         if (avgRed > 0.45) setRedness("high");
-//         else if (avgRed > 0.30) setRedness("moderate");
-//         else setRedness("normal");
-//       }
+// //       } catch (err) {
+// //         console.error("INIT FAILED:", err);
+// //       }
+// //     };
 
-//     });
+// //     init();
 
-//     faceMeshRef.current = faceMesh;
+// //     return () => {
+// //       clearInterval(interval);
+// //       cameraRef.current?.stop();
+// //       faceMeshRef.current?.close();
+// //     };
 
-//     const camera = new window.Camera(videoRef.current, {
-//       onFrame: async () => {
-//         if (videoRef.current.readyState === 4) {
-//           await faceMeshRef.current.send({
-//             image: videoRef.current
-//           });
-//         }
-//       },
-//       width: 640,
-//       height: 480
-//     });
+// //   }, []);
 
-//     camera.start();
-//     cameraRef.current = camera;
+// //   return (
+// //     <div className="w-full h-full">
+// //       <video ref={videoRef} className="hidden" />
+// //       <canvas
+// //         ref={canvasRef}
+// //         width="640"
+// //         height="480"
+// //         className="rounded-lg w-full h-full object-cover scale-x-[-1]"
+// //       />
+// //     </div>
+// //   );
+// // };
 
-//     /* ---------- MAIN LOOP ---------- */
-//     const interval = setInterval(() => {
+// // export default WebcamFeed;
 
-//       const now = Date.now();
+// // import { useEffect, useRef } from "react";
 
-//       blinkTimes.current =
-//         blinkTimes.current.filter(t => now - t < 60000);
+// // const WebcamFeed = ({
+// //   setBlinkRate = () => {},
+// //   setDistance = () => {},
+// //   setRedness = () => {},
+// //   setStressScore = () => {},
+// //   setHeadPosition = () => {},
+// //   setExpression = () => {}
+// // }) => {
 
-//       const rate = blinkTimes.current.length;
-//       setBlinkRate(rate);
+// //   const videoRef = useRef(null);
+// //   const canvasRef = useRef(null);
 
-//       let score = 100;
+// //   const faceMeshRef = useRef(null);
+// //   const cameraRef = useRef(null);
 
-//       if (rate < 12) score -= 10;
-//       if (rate < 8) score -= 15;
-//       if (rate < 5) score -= 20;
+// //   const blinkTimes = useRef([]);
+// //   const eyeClosed = useRef(false);
+// //   const lastBlinkTime = useRef(0);
 
-//       if (distanceRef.current === "too close") score -= 10;
-//       if (distanceRef.current === "too far") score -= 5;
+// //   const eyeHistory = useRef([]);
+// //   const rednessHistory = useRef([]);
 
-//       if (headRef.current === "tilted") score -= 8;
+// //   const expressionRef = useRef("focused");
+// //   const distanceRef = useRef("optimal");
+// //   const headRef = useRef("aligned");
 
-//       if (expressionRef.current === "drowsy") score -= 20;
-//       if (expressionRef.current === "strained") score -= 15;
+// //   const smoothedScore = useRef(100);
+// //   const smooth = (prev, current) => prev * 0.8 + current * 0.2;
 
-//       const redness =
-//         rednessHistory.current.reduce((a, b) => a + b, 0) /
-//         (rednessHistory.current.length || 1);
+// //   /* ---------- LOAD MEDIAPIPE ---------- */
+// //   const loadScript = (src) => {
+// //     return new Promise((resolve, reject) => {
+// //       if (document.querySelector(`script[src="${src}"]`)) {
+// //         resolve();
+// //         return;
+// //       }
 
-//       if (redness > 0.45) score -= 10;
+// //       const script = document.createElement("script");
+// //       script.src = src;
+// //       script.async = true;
+// //       script.onload = resolve;
+// //       script.onerror = reject;
+// //       document.body.appendChild(script);
+// //     });
+// //   };
 
-//       score = Math.max(0, Math.min(100, score));
+// //   /* ---------- REDNESS ---------- */
+// //   const detectRedness = (imageData) => {
+// //     let redPixels = 0;
+// //     let total = 0;
 
-//       smoothedScore.current = smooth(smoothedScore.current, score);
-//       setStressScore(Math.round(smoothedScore.current));
+// //     const data = imageData.data;
 
-//     }, 1000);
+// //     for (let i = 0; i < data.length; i += 4) {
+// //       const r = data[i];
+// //       const g = data[i + 1];
+// //       const b = data[i + 2];
 
-//     return () => {
-//       clearInterval(interval);
-//       cameraRef.current?.stop();
-//       faceMeshRef.current?.close();
-//     };
+// //       if (r > g * 1.15 && r > b * 1.15) redPixels++;
+// //       total++;
+// //     }
 
-//   }, []);
+// //     return redPixels / total;
+// //   };
 
-//   return (
-//     <div className="w-full h-full">
-//       <video ref={videoRef} className="hidden" />
-//       <canvas
-//         ref={canvasRef}
-//         width="640"
-//         height="480"
-//         className="rounded-lg w-full h-full object-cover scale-x-[-1]"
-//       />
-//     </div>
-//   );
-// };
+// //   useEffect(() => {
 
-// export default WebcamFeed;
+// //     let interval;
 
-// import { useEffect, useRef } from "react";
+// //     const init = async () => {
+// //       try {
+// //         await loadScript("https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4/face_mesh.js");
+// //         await loadScript("https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js");
 
-// const WebcamFeed = ({
-//   setBlinkRate = () => {},
-//   setDistance = () => {},
-//   setRedness = () => {},
-//   setStressScore = () => {},
-//   setHeadPosition = () => {},
-//   setExpression = () => {}
-// }) => {
+// //         if (!window.FaceMesh || !window.Camera) {
+// //           console.error("MediaPipe failed to load");
+// //           return;
+// //         }
 
-//   const videoRef = useRef(null);
-//   const canvasRef = useRef(null);
+// //         const faceMesh = new window.FaceMesh({
+// //           locateFile: (file) =>
+// //             `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4/${file}`
+// //         });
 
-//   const faceMeshRef = useRef(null);
-//   const cameraRef = useRef(null);
+// //         faceMesh.setOptions({
+// //           maxNumFaces: 1,
+// //           refineLandmarks: true,
+// //           minDetectionConfidence: 0.5,
+// //           minTrackingConfidence: 0.5
+// //         });
 
-//   const blinkTimes = useRef([]);
-//   const eyeClosed = useRef(false);
-//   const lastBlinkTime = useRef(0);
+// //         faceMesh.onResults((results) => {
 
-//   const eyeHistory = useRef([]);
-//   const rednessHistory = useRef([]);
+// //           const canvas = canvasRef.current;
+// //           if (!canvas) return;
 
-//   const expressionRef = useRef("focused");
-//   const distanceRef = useRef("optimal");
-//   const headRef = useRef("aligned");
+// //           const ctx = canvas.getContext("2d");
+// //           ctx.clearRect(0, 0, canvas.width, canvas.height);
+// //           ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
 
-//   const smoothedScore = useRef(100);
-//   const smooth = (prev, current) => prev * 0.8 + current * 0.2;
+// //           if (!results.multiFaceLandmarks?.length) return;
 
-//   /* ---------- LOAD MEDIAPIPE SAFELY ---------- */
-//   const loadScript = (src) => {
-//     return new Promise((resolve, reject) => {
-//       if (document.querySelector(`script[src="${src}"]`)) {
-//         resolve();
-//         return;
-//       }
+// //           const lm = results.multiFaceLandmarks[0];
 
-//       const script = document.createElement("script");
-//       script.src = src;
-//       script.async = true;
-//       script.onload = resolve;
-//       script.onerror = reject;
-//       document.body.appendChild(script);
-//     });
-//   };
+// //           /* ---------- 🔥 OLD FAST BLINK LOGIC ---------- */
 
-//   const detectRedness = (imageData) => {
-//     let redPixels = 0;
-//     let total = 0;
-//     const data = imageData.data;
+// //           const top = lm[159];
+// //           const bottom = lm[145];
 
-//     for (let i = 0; i < data.length; i += 4) {
-//       const r = data[i];
-//       const g = data[i + 1];
-//       const b = data[i + 2];
+// //           const raw = Math.abs(top.y - bottom.y);
 
-//       if (r > g * 1.15 && r > b * 1.15) redPixels++;
-//       total++;
-//     }
+// //           // SAME old smoothing (fast response)
+// //           eyeHistory.current.push(raw);
+// //           if (eyeHistory.current.length > 5)
+// //             eyeHistory.current.shift();
 
-//     return redPixels / total;
-//   };
+// //           const eyeDistance =
+// //             eyeHistory.current.reduce((a, b) => a + b, 0) /
+// //             eyeHistory.current.length;
 
-//   useEffect(() => {
+// //           // SAME thresholds (no delay)
+// //           if (eyeDistance < 0.025 && !eyeClosed.current)
+// //             eyeClosed.current = true;
 
-//     let interval;
+// //           if (eyeDistance > 0.03 && eyeClosed.current) {
+// //             const now = Date.now();
 
-//     const init = async () => {
-//       try {
-//         /* 🔥 FIX: Load correct MediaPipe (no WASM crash) */
-//         await loadScript("https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4/face_mesh.js");
-//         await loadScript("https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js");
+// //             if (now - lastBlinkTime.current > 150) {
+// //               blinkTimes.current.push(now);
+// //               lastBlinkTime.current = now;
+// //             }
 
-//         if (!window.FaceMesh || !window.Camera) {
-//           console.error("MediaPipe failed to load");
-//           return;
-//         }
+// //             eyeClosed.current = false;
+// //           }
 
-//         const faceMesh = new window.FaceMesh({
-//           locateFile: (file) =>
-//             `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4/${file}`
-//         });
+// //           /* ---------- DISTANCE ---------- */
 
-//         faceMesh.setOptions({
-//           maxNumFaces: 1,
-//           refineLandmarks: true,
-//           minDetectionConfidence: 0.5,
-//           minTrackingConfidence: 0.5
-//         });
+// //           const z = lm[1].z;
 
-//         faceMesh.onResults((results) => {
+// //           if (z < -0.10) distanceRef.current = "too close";
+// //           else if (z > -0.07) distanceRef.current = "too far";
+// //           else distanceRef.current = "optimal";
 
-//           const canvas = canvasRef.current;
-//           if (!canvas) return;
+// //           setDistance(distanceRef.current);
 
-//           const ctx = canvas.getContext("2d");
-//           ctx.clearRect(0, 0, canvas.width, canvas.height);
-//           ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
+// //           /* ---------- HEAD ---------- */
 
-//           if (!results.multiFaceLandmarks?.length) return;
+// //           const tilt =
+// //             (lm[263].y - lm[33].y) /
+// //             (lm[263].x - lm[33].x);
 
-//           const lm = results.multiFaceLandmarks[0];
+// //           const headState = Math.abs(tilt) > 0.1 ? "tilted" : "aligned";
+// //           headRef.current = headState;
+// //           setHeadPosition(headState);
 
-//           /* ---------- BLINK ---------- */
-//           const raw = Math.abs(lm[159].y - lm[145].y);
+// //           /* ---------- EXPRESSION ---------- */
 
-//           eyeHistory.current.push(raw);
-//           if (eyeHistory.current.length > 5) eyeHistory.current.shift();
+// //           const mouthOpen = Math.abs(lm[13].y - lm[14].y);
+// //           const mouthWidth = Math.abs(lm[61].x - lm[291].x);
+// //           const browHeight = Math.abs(lm[65].y - lm[295].y);
 
-//           const avgEye =
-//             eyeHistory.current.reduce((a, b) => a + b, 0) /
-//             eyeHistory.current.length;
+// //           let expression = "focused";
 
-//           if (avgEye < 0.025 && !eyeClosed.current)
-//             eyeClosed.current = true;
+// //           if (eyeDistance < 0.015) expression = "drowsy";
+// //           else if (mouthOpen > 0.06) expression = "yawning";
+// //           else if (mouthWidth > 0.07 && eyeDistance > 0.02) expression = "relaxed";
+// //           else if (eyeDistance < 0.02 && browHeight < 0.02) expression = "strained";
 
-//           if (avgEye > 0.03 && eyeClosed.current) {
-//             const now = Date.now();
-//             if (now - lastBlinkTime.current > 150) {
-//               blinkTimes.current.push(now);
-//               lastBlinkTime.current = now;
-//             }
-//             eyeClosed.current = false;
-//           }
+// //           if (expressionRef.current !== expression) {
+// //             expressionRef.current = expression;
+// //             setExpression(expression);
+// //           }
 
-//           /* ---------- DISTANCE ---------- */
-//           const z = lm[1].z;
+// //           /* ---------- REDNESS ---------- */
 
-//           if (z < -0.10) distanceRef.current = "too close";
-//           else if (z > -0.07) distanceRef.current = "too far";
-//           else distanceRef.current = "optimal";
+// //           const lx = lm[33].x * canvas.width;
+// //           const ly = lm[33].y * canvas.height;
 
-//           setDistance(distanceRef.current);
+// //           if (lx > 20 && ly > 20 && lx < canvas.width - 20 && ly < canvas.height - 20) {
+// //             const region = ctx.getImageData(lx - 10, ly - 10, 20, 20);
 
-//           /* ---------- HEAD ---------- */
-//           const tilt =
-//             (lm[263].y - lm[33].y) /
-//             (lm[263].x - lm[33].x);
+// //             const redness = detectRedness(region);
 
-//           const headState = Math.abs(tilt) > 0.1 ? "tilted" : "aligned";
-//           headRef.current = headState;
-//           setHeadPosition(headState);
+// //             rednessHistory.current.push(redness);
+// //             if (rednessHistory.current.length > 10)
+// //               rednessHistory.current.shift();
 
-//           /* ---------- EXPRESSION ---------- */
-//           const mouthOpen = Math.abs(lm[13].y - lm[14].y);
-//           const mouthWidth = Math.abs(lm[61].x - lm[291].x);
-//           const browHeight = Math.abs(lm[65].y - lm[295].y);
+// //             const avgRed =
+// //               rednessHistory.current.reduce((a, b) => a + b, 0) /
+// //               rednessHistory.current.length;
 
-//           let expression = "focused";
+// //             if (avgRed > 0.45) setRedness("high");
+// //             else if (avgRed > 0.30) setRedness("moderate");
+// //             else setRedness("normal");
+// //           }
 
-//           if (avgEye < 0.015) expression = "drowsy";
-//           else if (mouthOpen > 0.06) expression = "yawning";
-//           else if (mouthWidth > 0.07 && avgEye > 0.02) expression = "relaxed";
-//           else if (avgEye < 0.02 && browHeight < 0.02) expression = "strained";
+// //         });
 
-//           if (expressionRef.current !== expression) {
-//             expressionRef.current = expression;
-//             setExpression(expression);
-//           }
+// //         faceMeshRef.current = faceMesh;
 
-//           /* ---------- REDNESS ---------- */
-//           const lx = lm[33].x * canvas.width;
-//           const ly = lm[33].y * canvas.height;
+// //         const camera = new window.Camera(videoRef.current, {
+// //           onFrame: async () => {
+// //   try {
+// //     if (videoRef.current && videoRef.current.readyState === 4) {
+// //       await faceMeshRef.current.send({
+// //         image: videoRef.current,
+// //       });
+// //     }
+// //   } catch (err) {
+// //     console.warn("Frame skipped");
+// //   }
+// // },
+// //           width: 640,
+// //           height: 480
+// //         });
 
-//           if (lx > 20 && ly > 20 && lx < canvas.width - 20 && ly < canvas.height - 20) {
-//             const region = ctx.getImageData(lx - 10, ly - 10, 20, 20);
-//             const redness = detectRedness(region);
+// //         camera.start();
+// //         cameraRef.current = camera;
 
-//             rednessHistory.current.push(redness);
-//             if (rednessHistory.current.length > 10)
-//               rednessHistory.current.shift();
+// //         /* ---------- MAIN LOOP ---------- */
 
-//             const avgRed =
-//               rednessHistory.current.reduce((a, b) => a + b, 0) /
-//               rednessHistory.current.length;
+// //         interval = setInterval(() => {
 
-//             if (avgRed > 0.45) setRedness("high");
-//             else if (avgRed > 0.30) setRedness("moderate");
-//             else setRedness("normal");
-//           }
+// //           const now = Date.now();
 
-//         });
+// //           blinkTimes.current =
+// //             blinkTimes.current.filter(t => now - t < 60000);
 
-//         faceMeshRef.current = faceMesh;
+// //           const rate = blinkTimes.current.length;
+// //           setBlinkRate(rate);
 
-//         const camera = new window.Camera(videoRef.current, {
-//           onFrame: async () => {
-//             if (videoRef.current.readyState === 4) {
-//               await faceMesh.send({ image: videoRef.current });
-//             }
-//           },
-//           width: 640,
-//           height: 480
-//         });
+// //           let score = 100;
 
-//         camera.start();
-//         cameraRef.current = camera;
+// //           if (rate < 12) score -= 10;
+// //           if (rate < 8) score -= 15;
+// //           if (rate < 5) score -= 20;
 
-//         /* ---------- MAIN LOOP ---------- */
-//         interval = setInterval(() => {
+// //           if (distanceRef.current === "too close") score -= 10;
+// //           if (distanceRef.current === "too far") score -= 5;
 
-//           const now = Date.now();
+// //           if (headRef.current === "tilted") score -= 8;
 
-//           blinkTimes.current =
-//             blinkTimes.current.filter(t => now - t < 60000);
+// //           if (expressionRef.current === "drowsy") score -= 20;
+// //           if (expressionRef.current === "strained") score -= 15;
 
-//           const rate = blinkTimes.current.length;
-//           setBlinkRate(rate);
+// //           const redness =
+// //             rednessHistory.current.reduce((a, b) => a + b, 0) /
+// //             (rednessHistory.current.length || 1);
 
-//           let score = 100;
+// //           if (redness > 0.45) score -= 10;
 
-//           if (rate < 12) score -= 10;
-//           if (rate < 8) score -= 15;
-//           if (rate < 5) score -= 20;
+// //           score = Math.max(0, Math.min(100, score));
 
-//           if (distanceRef.current === "too close") score -= 10;
-//           if (distanceRef.current === "too far") score -= 5;
+// //           smoothedScore.current = smooth(smoothedScore.current, score);
+// //           setStressScore(Math.round(smoothedScore.current));
 
-//           if (headRef.current === "tilted") score -= 8;
+// //         }, 1000);
 
-//           if (expressionRef.current === "drowsy") score -= 20;
-//           if (expressionRef.current === "strained") score -= 15;
+// //       } catch (err) {
+// //         console.error("INIT FAILED:", err);
+// //       }
+// //     };
 
-//           const redness =
-//             rednessHistory.current.reduce((a, b) => a + b, 0) /
-//             (rednessHistory.current.length || 1);
+// //     init();
 
-//           if (redness > 0.45) score -= 10;
+// //     return () => {
+// //       clearInterval(interval);
+// //       cameraRef.current?.stop();
+// //       faceMeshRef.current?.close();
+// //     };
 
-//           score = Math.max(0, Math.min(100, score));
+// //   }, []);
 
-//           smoothedScore.current = smooth(smoothedScore.current, score);
-//           setStressScore(Math.round(smoothedScore.current));
+// //   return (
+// //     <div className="w-full h-full">
+// //       <video ref={videoRef} className="hidden" />
+// //       <canvas
+// //         ref={canvasRef}
+// //         width="640"
+// //         height="480"
+// //         className="rounded-lg w-full h-full object-cover scale-x-[-1]"
+// //       />
+// //     </div>
+// //   );
+// // };
 
-//         }, 1000);
+// // export default WebcamFeed;
 
-//       } catch (err) {
-//         console.error("INIT FAILED:", err);
-//       }
-//     };
+// // import { useEffect, useRef } from "react";
 
-//     init();
+// // const WebcamFeed = ({
+// //   setBlinkRate = () => {},
+// //   setDistance = () => {},
+// //   setRedness = () => {},
+// //   setStressScore = () => {},
+// //   setHeadPosition = () => {},
+// //   setExpression = () => {}
+// // }) => {
 
-//     return () => {
-//       clearInterval(interval);
-//       cameraRef.current?.stop();
-//       faceMeshRef.current?.close();
-//     };
+// //   const videoRef = useRef(null);
+// //   const canvasRef = useRef(null);
 
-//   }, []);
+// //   const faceMeshRef = useRef(null);
+// //   const cameraRef = useRef(null);
 
-//   return (
-//     <div className="w-full h-full">
-//       <video ref={videoRef} className="hidden" />
-//       <canvas
-//         ref={canvasRef}
-//         width="640"
-//         height="480"
-//         className="rounded-lg w-full h-full object-cover scale-x-[-1]"
-//       />
-//     </div>
-//   );
-// };
+// //   const blinkTimes = useRef([]);
+// //   const eyeClosed = useRef(false);
+// //   const lastBlinkTime = useRef(0);
 
-// export default WebcamFeed;
+// //   const eyeHistory = useRef([]);
+// //   const rednessHistory = useRef([]);
 
-// import { useEffect, useRef } from "react";
+// //   const expressionRef = useRef("focused");
+// //   const distanceRef = useRef("optimal");
+// //   const headRef = useRef("aligned");
 
-// const WebcamFeed = ({
-//   setBlinkRate = () => {},
-//   setDistance = () => {},
-//   setRedness = () => {},
-//   setStressScore = () => {},
-//   setHeadPosition = () => {},
-//   setExpression = () => {}
-// }) => {
+// //   const smoothedScore = useRef(100);
+// //   const eyeCloseStart = useRef(null);
+// //   const redState = useRef("normal");
 
-//   const videoRef = useRef(null);
-//   const canvasRef = useRef(null);
+// //   const smooth = (prev, current) => prev * 0.9 + current * 0.1;
 
-//   const faceMeshRef = useRef(null);
-//   const cameraRef = useRef(null);
+// //   const loadScript = (src) => {
+// //     return new Promise((resolve, reject) => {
+// //       if (document.querySelector(`script[src="${src}"]`)) return resolve();
 
-//   const blinkTimes = useRef([]);
-//   const eyeClosed = useRef(false);
-//   const lastBlinkTime = useRef(0);
+// //       const script = document.createElement("script");
+// //       script.src = src;
+// //       script.async = true;
+// //       script.onload = resolve;
+// //       script.onerror = reject;
+// //       document.body.appendChild(script);
+// //     });
+// //   };
 
-//   const eyeHistory = useRef([]);
-//   const rednessHistory = useRef([]);
+// //   const detectRedness = (imageData) => {
+// //     let redPixels = 0, total = 0;
+// //     const data = imageData.data;
 
-//   const expressionRef = useRef("focused");
-//   const distanceRef = useRef("optimal");
-//   const headRef = useRef("aligned");
+// //     for (let i = 0; i < data.length; i += 4) {
+// //       const r = data[i], g = data[i + 1], b = data[i + 2];
+// //       if (r > g * 1.15 && r > b * 1.15) redPixels++;
+// //       total++;
+// //     }
+// //     return redPixels / total;
+// //   };
 
-//   const smoothedScore = useRef(100);
-//   const smooth = (prev, current) => prev * 0.8 + current * 0.2;
+// //   useEffect(() => {
 
-//   /* ---------- LOAD MEDIAPIPE ---------- */
-//   const loadScript = (src) => {
-//     return new Promise((resolve, reject) => {
-//       if (document.querySelector(`script[src="${src}"]`)) {
-//         resolve();
-//         return;
-//       }
+// //     let interval;
 
-//       const script = document.createElement("script");
-//       script.src = src;
-//       script.async = true;
-//       script.onload = resolve;
-//       script.onerror = reject;
-//       document.body.appendChild(script);
-//     });
-//   };
+// //     const init = async () => {
+// //       try {
+// //         await loadScript("https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4/face_mesh.js");
+// //         await loadScript("https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js");
 
-//   /* ---------- REDNESS ---------- */
-//   const detectRedness = (imageData) => {
-//     let redPixels = 0;
-//     let total = 0;
+// //         const faceMesh = new window.FaceMesh({
+// //           locateFile: (file) =>
+// //             `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4/${file}`
+// //         });
 
-//     const data = imageData.data;
+// //         faceMesh.setOptions({
+// //           maxNumFaces: 1,
+// //           refineLandmarks: true,
+// //           minDetectionConfidence: 0.5,
+// //           minTrackingConfidence: 0.5
+// //         });
 
-//     for (let i = 0; i < data.length; i += 4) {
-//       const r = data[i];
-//       const g = data[i + 1];
-//       const b = data[i + 2];
+// //         faceMesh.onResults((results) => {
 
-//       if (r > g * 1.15 && r > b * 1.15) redPixels++;
-//       total++;
-//     }
+// //           const canvas = canvasRef.current;
+// //           if (!canvas) return;
 
-//     return redPixels / total;
-//   };
+// //           const ctx = canvas.getContext("2d");
+// //           ctx.clearRect(0, 0, canvas.width, canvas.height);
+// //           ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
 
-//   useEffect(() => {
+// //           if (!results.multiFaceLandmarks?.length) return;
 
-//     let interval;
+// //           const lm = results.multiFaceLandmarks[0];
 
-//     const init = async () => {
-//       try {
-//         await loadScript("https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4/face_mesh.js");
-//         await loadScript("https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js");
+// //           /* ---------- BLINK ---------- */
+// //           const raw = Math.abs(lm[159].y - lm[145].y);
+// //           eyeHistory.current.push(raw);
+// //           if (eyeHistory.current.length > 5) eyeHistory.current.shift();
 
-//         if (!window.FaceMesh || !window.Camera) {
-//           console.error("MediaPipe failed to load");
-//           return;
-//         }
+// //           const eyeDistance =
+// //             eyeHistory.current.reduce((a, b) => a + b, 0) /
+// //             eyeHistory.current.length;
 
-//         const faceMesh = new window.FaceMesh({
-//           locateFile: (file) =>
-//             `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4/${file}`
-//         });
+// //           if (eyeDistance < 0.025 && !eyeClosed.current)
+// //             eyeClosed.current = true;
 
-//         faceMesh.setOptions({
-//           maxNumFaces: 1,
-//           refineLandmarks: true,
-//           minDetectionConfidence: 0.5,
-//           minTrackingConfidence: 0.5
-//         });
+// //           if (eyeDistance > 0.03 && eyeClosed.current) {
+// //             const now = Date.now();
+// //             if (now - lastBlinkTime.current > 150) {
+// //               blinkTimes.current.push(now);
+// //               lastBlinkTime.current = now;
+// //             }
+// //             eyeClosed.current = false;
+// //           }
 
-//         faceMesh.onResults((results) => {
+// //           /* ---------- DISTANCE ---------- */
+// //           const z = lm[1].z;
+// //           distanceRef.current =
+// //             z < -0.10 ? "too close" :
+// //             z > -0.07 ? "too far" : "optimal";
+// //           setDistance(distanceRef.current);
 
-//           const canvas = canvasRef.current;
-//           if (!canvas) return;
+// //           /* ---------- HEAD ---------- */
+// //           const tilt = (lm[263].y - lm[33].y) / (lm[263].x - lm[33].x);
+// //           headRef.current = Math.abs(tilt) > 0.1 ? "tilted" : "aligned";
+// //           setHeadPosition(headRef.current);
 
-//           const ctx = canvas.getContext("2d");
-//           ctx.clearRect(0, 0, canvas.width, canvas.height);
-//           ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
+// //           /* ---------- EXPRESSION ---------- */
+// //           const now = Date.now();
+// //           let expression = "focused";
 
-//           if (!results.multiFaceLandmarks?.length) return;
+// //           if (eyeDistance < 0.015) {
+// //             if (!eyeCloseStart.current) eyeCloseStart.current = now;
+// //             if (now - eyeCloseStart.current > 2000)
+// //               expression = "drowsy";
+// //           } else eyeCloseStart.current = null;
 
-//           const lm = results.multiFaceLandmarks[0];
+// //           const mouthOpen = Math.abs(lm[13].y - lm[14].y);
+// //           const mouthWidth = Math.abs(lm[61].x - lm[291].x);
 
-//           /* ---------- 🔥 OLD FAST BLINK LOGIC ---------- */
+// //           if (mouthOpen > 0.07) expression = "shocked";
+// //           else if (mouthWidth > 0.065 && eyeDistance > 0.02)
+// //             expression = "smile";
 
-//           const top = lm[159];
-//           const bottom = lm[145];
+// //           if (expressionRef.current !== expression) {
+// //             expressionRef.current = expression;
+// //             setExpression(expression);
+// //           }
 
-//           const raw = Math.abs(top.y - bottom.y);
+// //           /* ---------- REDNESS ---------- */
+// //           const lx = lm[33].x * canvas.width;
+// //           const ly = lm[33].y * canvas.height;
 
-//           // SAME old smoothing (fast response)
-//           eyeHistory.current.push(raw);
-//           if (eyeHistory.current.length > 5)
-//             eyeHistory.current.shift();
+// //           if (lx > 20 && ly > 20 && lx < canvas.width - 20) {
+// //             const region = ctx.getImageData(lx - 10, ly - 10, 20, 20);
+// //             const red = detectRedness(region);
 
-//           const eyeDistance =
-//             eyeHistory.current.reduce((a, b) => a + b, 0) /
-//             eyeHistory.current.length;
+// //             rednessHistory.current.push(red);
+// //             if (rednessHistory.current.length > 10)
+// //               rednessHistory.current.shift();
 
-//           // SAME thresholds (no delay)
-//           if (eyeDistance < 0.025 && !eyeClosed.current)
-//             eyeClosed.current = true;
+// //             const avgRed =
+// //               rednessHistory.current.reduce((a, b) => a + b, 0) /
+// //               rednessHistory.current.length;
 
-//           if (eyeDistance > 0.03 && eyeClosed.current) {
-//             const now = Date.now();
+// //             if (avgRed > 0.45) redState.current = "high";
+// //             else if (avgRed > 0.30) redState.current = "moderate";
 
-//             if (now - lastBlinkTime.current > 150) {
-//               blinkTimes.current.push(now);
-//               lastBlinkTime.current = now;
-//             }
+// //             setRedness(redState.current);
+// //           }
+// //         });
 
-//             eyeClosed.current = false;
-//           }
+// //         faceMeshRef.current = faceMesh;
 
-//           /* ---------- DISTANCE ---------- */
+// //         const camera = new window.Camera(videoRef.current, {
+// //           onFrame: async () => {
+// //             if (document.visibilityState !== "visible") return;
+// //             await faceMesh.send({ image: videoRef.current });
+// //           },
+// //           width: 640,
+// //           height: 480
+// //         });
 
-//           const z = lm[1].z;
+// //         camera.start();
+// //         cameraRef.current = camera;
 
-//           if (z < -0.10) distanceRef.current = "too close";
-//           else if (z > -0.07) distanceRef.current = "too far";
-//           else distanceRef.current = "optimal";
+// //         /* ---------- STRESS ENGINE ---------- */
+// //         interval = setInterval(() => {
 
-//           setDistance(distanceRef.current);
+// //           const now = Date.now();
+// //           blinkTimes.current =
+// //             blinkTimes.current.filter(t => now - t < 60000);
 
-//           /* ---------- HEAD ---------- */
+// //           const rate = blinkTimes.current.length;
+// //           setBlinkRate(rate);
 
-//           const tilt =
-//             (lm[263].y - lm[33].y) /
-//             (lm[263].x - lm[33].x);
+// //           let score = 100;
 
-//           const headState = Math.abs(tilt) > 0.1 ? "tilted" : "aligned";
-//           headRef.current = headState;
-//           setHeadPosition(headState);
+// //           // Blink
+// //           if (rate < 15) score -= 5;
+// //           if (rate < 10) score -= 10;
+// //           if (rate < 6) score -= 15;
 
-//           /* ---------- EXPRESSION ---------- */
+// //           // Distance
+// //           if (distanceRef.current === "too close") score -= 12;
+// //           if (distanceRef.current === "too far") score -= 6;
 
-//           const mouthOpen = Math.abs(lm[13].y - lm[14].y);
-//           const mouthWidth = Math.abs(lm[61].x - lm[291].x);
-//           const browHeight = Math.abs(lm[65].y - lm[295].y);
+// //           // Head
+// //           if (headRef.current === "tilted") score -= 10;
 
-//           let expression = "focused";
+// //           // Expression
+// //           if (expressionRef.current === "drowsy") score -= 25;
+// //           else if (expressionRef.current === "shocked") score -= 8;
 
-//           if (eyeDistance < 0.015) expression = "drowsy";
-//           else if (mouthOpen > 0.06) expression = "yawning";
-//           else if (mouthWidth > 0.07 && eyeDistance > 0.02) expression = "relaxed";
-//           else if (eyeDistance < 0.02 && browHeight < 0.02) expression = "strained";
+// //           // Redness
+// //           const redness =
+// //             rednessHistory.current.reduce((a, b) => a + b, 0) /
+// //             (rednessHistory.current.length || 1);
 
-//           if (expressionRef.current !== expression) {
-//             expressionRef.current = expression;
-//             setExpression(expression);
-//           }
+// //           if (redness > 0.45) score -= 12;
+// //           else if (redness > 0.30) score -= 6;
 
-//           /* ---------- REDNESS ---------- */
+// //           score = Math.max(20, Math.min(100, score));
 
-//           const lx = lm[33].x * canvas.width;
-//           const ly = lm[33].y * canvas.height;
+// //           smoothedScore.current = smooth(smoothedScore.current, score);
+// //           setStressScore(Math.round(smoothedScore.current));
 
-//           if (lx > 20 && ly > 20 && lx < canvas.width - 20 && ly < canvas.height - 20) {
-//             const region = ctx.getImageData(lx - 10, ly - 10, 20, 20);
+// //         }, 1000);
 
-//             const redness = detectRedness(region);
+// //       } catch (err) {
+// //         console.error("INIT FAILED:", err);
+// //       }
+// //     };
 
-//             rednessHistory.current.push(redness);
-//             if (rednessHistory.current.length > 10)
-//               rednessHistory.current.shift();
+// //     init();
 
-//             const avgRed =
-//               rednessHistory.current.reduce((a, b) => a + b, 0) /
-//               rednessHistory.current.length;
+// //     return () => {
+// //       clearInterval(interval);
+// //       cameraRef.current?.stop();
+// //       faceMeshRef.current?.close();
+// //     };
 
-//             if (avgRed > 0.45) setRedness("high");
-//             else if (avgRed > 0.30) setRedness("moderate");
-//             else setRedness("normal");
-//           }
+// //   }, []);
 
-//         });
+// //   return (
+// //     <div className="w-full h-full">
+// //       <video ref={videoRef} className="hidden" />
+// //       <canvas
+// //         ref={canvasRef}
+// //         width="640"
+// //         height="480"
+// //         className="rounded-lg w-full h-full object-cover scale-x-[-1]"
+// //       />
+// //     </div>
+// //   );
+// // };
 
-//         faceMeshRef.current = faceMesh;
+// // export default WebcamFeed;
 
-//         const camera = new window.Camera(videoRef.current, {
-//           onFrame: async () => {
-//   try {
-//     if (videoRef.current && videoRef.current.readyState === 4) {
-//       await faceMeshRef.current.send({
-//         image: videoRef.current,
-//       });
-//     }
-//   } catch (err) {
-//     console.warn("Frame skipped");
-//   }
-// },
-//           width: 640,
-//           height: 480
-//         });
+// // import { useEffect, useRef } from "react";
 
-//         camera.start();
-//         cameraRef.current = camera;
+// // const WebcamFeed = ({
+// //   setBlinkRate = () => {},
+// //   setDistance = () => {},
+// //   setRedness = () => {},
+// //   setStressScore = () => {},
+// //   setHeadPosition = () => {},
+// //   setExpression = () => {}
+// // }) => {
 
-//         /* ---------- MAIN LOOP ---------- */
+// //   const videoRef = useRef(null);
+// //   const canvasRef = useRef(null);
 
-//         interval = setInterval(() => {
+// //   const faceMeshRef = useRef(null);
+// //   const cameraRef = useRef(null);
 
-//           const now = Date.now();
+// //   const blinkTimes = useRef([]);
+// //   const eyeClosed = useRef(false);
+// //   const lastBlinkTime = useRef(0);
 
-//           blinkTimes.current =
-//             blinkTimes.current.filter(t => now - t < 60000);
+// //   const eyeHistory = useRef([]);
+// //   const rednessHistory = useRef([]);
 
-//           const rate = blinkTimes.current.length;
-//           setBlinkRate(rate);
+// //   const expressionRef = useRef("focused");
+// //   const distanceRef = useRef("optimal");
+// //   const headRef = useRef("aligned");
 
-//           let score = 100;
+// //   const smoothedScore = useRef(100);
+// //   const eyeCloseStart = useRef(null);
+// //   const redState = useRef("normal");
 
-//           if (rate < 12) score -= 10;
-//           if (rate < 8) score -= 15;
-//           if (rate < 5) score -= 20;
+// //   const smooth = (prev, current) => prev * 0.9 + current * 0.1;
 
-//           if (distanceRef.current === "too close") score -= 10;
-//           if (distanceRef.current === "too far") score -= 5;
+// //   const loadScript = (src) => {
+// //     return new Promise((resolve, reject) => {
+// //       if (document.querySelector(`script[src="${src}"]`)) return resolve();
 
-//           if (headRef.current === "tilted") score -= 8;
+// //       const script = document.createElement("script");
+// //       script.src = src;
+// //       script.async = true;
+// //       script.onload = resolve;
+// //       script.onerror = reject;
+// //       document.body.appendChild(script);
+// //     });
+// //   };
 
-//           if (expressionRef.current === "drowsy") score -= 20;
-//           if (expressionRef.current === "strained") score -= 15;
+// //   const detectRedness = (imageData) => {
+// //     let redPixels = 0, total = 0;
+// //     const data = imageData.data;
 
-//           const redness =
-//             rednessHistory.current.reduce((a, b) => a + b, 0) /
-//             (rednessHistory.current.length || 1);
+// //     for (let i = 0; i < data.length; i += 4) {
+// //       const r = data[i], g = data[i + 1], b = data[i + 2];
+// //       if (r > g * 1.15 && r > b * 1.15) redPixels++;
+// //       total++;
+// //     }
+// //     return redPixels / total;
+// //   };
 
-//           if (redness > 0.45) score -= 10;
+// //   useEffect(() => {
 
-//           score = Math.max(0, Math.min(100, score));
+// //     let interval;
 
-//           smoothedScore.current = smooth(smoothedScore.current, score);
-//           setStressScore(Math.round(smoothedScore.current));
+// //     const init = async () => {
+// //       try {
+// //         await loadScript("https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4/face_mesh.js");
+// //         await loadScript("https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js");
 
-//         }, 1000);
+// //         const faceMesh = new window.FaceMesh({
+// //           locateFile: (file) =>
+// //             `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4/${file}`
+// //         });
 
-//       } catch (err) {
-//         console.error("INIT FAILED:", err);
-//       }
-//     };
+// //         faceMesh.setOptions({
+// //           maxNumFaces: 1,
+// //           refineLandmarks: true,
+// //           minDetectionConfidence: 0.5,
+// //           minTrackingConfidence: 0.5
+// //         });
 
-//     init();
+// //         faceMesh.onResults((results) => {
 
-//     return () => {
-//       clearInterval(interval);
-//       cameraRef.current?.stop();
-//       faceMeshRef.current?.close();
-//     };
+// //           const canvas = canvasRef.current;
+// //           if (!canvas) return;
 
-//   }, []);
+// //           const ctx = canvas.getContext("2d");
+// //           ctx.clearRect(0, 0, canvas.width, canvas.height);
+// //           ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
 
-//   return (
-//     <div className="w-full h-full">
-//       <video ref={videoRef} className="hidden" />
-//       <canvas
-//         ref={canvasRef}
-//         width="640"
-//         height="480"
-//         className="rounded-lg w-full h-full object-cover scale-x-[-1]"
-//       />
-//     </div>
-//   );
-// };
+// //           if (!results.multiFaceLandmarks?.length) return;
 
-// export default WebcamFeed;
+// //           const lm = results.multiFaceLandmarks[0];
 
-// import { useEffect, useRef } from "react";
+// //           // 👁️ BLINK
+// //           const raw = Math.abs(lm[159].y - lm[145].y);
+// //           eyeHistory.current.push(raw);
+// //           if (eyeHistory.current.length > 5) eyeHistory.current.shift();
 
-// const WebcamFeed = ({
-//   setBlinkRate = () => {},
-//   setDistance = () => {},
-//   setRedness = () => {},
-//   setStressScore = () => {},
-//   setHeadPosition = () => {},
-//   setExpression = () => {}
-// }) => {
+// //           const eyeDistance =
+// //             eyeHistory.current.reduce((a, b) => a + b, 0) /
+// //             eyeHistory.current.length;
 
-//   const videoRef = useRef(null);
-//   const canvasRef = useRef(null);
+// //           if (eyeDistance < 0.025 && !eyeClosed.current)
+// //             eyeClosed.current = true;
 
-//   const faceMeshRef = useRef(null);
-//   const cameraRef = useRef(null);
+// //           if (eyeDistance > 0.03 && eyeClosed.current) {
+// //             const now = Date.now();
+// //             if (now - lastBlinkTime.current > 150) {
+// //               blinkTimes.current.push(now);
+// //               lastBlinkTime.current = now;
+// //             }
+// //             eyeClosed.current = false;
+// //           }
 
-//   const blinkTimes = useRef([]);
-//   const eyeClosed = useRef(false);
-//   const lastBlinkTime = useRef(0);
+// //           // 📏 DISTANCE
+// //           const z = lm[1].z;
+// //           distanceRef.current =
+// //             z < -0.10 ? "too close" :
+// //             z > -0.07 ? "too far" : "optimal";
+// //           setDistance(distanceRef.current);
 
-//   const eyeHistory = useRef([]);
-//   const rednessHistory = useRef([]);
+// //           // 🧍 HEAD
+// //           const tilt = (lm[263].y - lm[33].y) / (lm[263].x - lm[33].x);
+// //           headRef.current = Math.abs(tilt) > 0.1 ? "tilted" : "aligned";
+// //           setHeadPosition(headRef.current);
 
-//   const expressionRef = useRef("focused");
-//   const distanceRef = useRef("optimal");
-//   const headRef = useRef("aligned");
+// //           // 😵 EXPRESSION (FIXED)
+// //           const now = Date.now();
+// //           let expression = "focused";
 
-//   const smoothedScore = useRef(100);
-//   const eyeCloseStart = useRef(null);
-//   const redState = useRef("normal");
+// //           if (eyeDistance < 0.015) {
+// //             if (!eyeCloseStart.current) eyeCloseStart.current = now;
+// //             if (now - eyeCloseStart.current > 2000)
+// //               expression = "drowsy";
+// //           } else eyeCloseStart.current = null;
 
-//   const smooth = (prev, current) => prev * 0.9 + current * 0.1;
+// //           const mouthOpen = Math.abs(lm[13].y - lm[14].y);
+// //           const mouthWidth = Math.abs(lm[61].x - lm[291].x);
 
-//   const loadScript = (src) => {
-//     return new Promise((resolve, reject) => {
-//       if (document.querySelector(`script[src="${src}"]`)) return resolve();
+// //           if (mouthOpen > 0.07) expression = "shocked";
+// //           else if (mouthWidth > 0.065 && eyeDistance > 0.02)
+// //             expression = "smile";
 
-//       const script = document.createElement("script");
-//       script.src = src;
-//       script.async = true;
-//       script.onload = resolve;
-//       script.onerror = reject;
-//       document.body.appendChild(script);
-//     });
-//   };
+// //           if (expressionRef.current !== expression) {
+// //             expressionRef.current = expression;
+// //             setExpression(expression);
+// //           }
 
-//   const detectRedness = (imageData) => {
-//     let redPixels = 0, total = 0;
-//     const data = imageData.data;
+// //           // 👁️ REDNESS (STABLE)
+// //           const lx = lm[33].x * canvas.width;
+// //           const ly = lm[33].y * canvas.height;
 
-//     for (let i = 0; i < data.length; i += 4) {
-//       const r = data[i], g = data[i + 1], b = data[i + 2];
-//       if (r > g * 1.15 && r > b * 1.15) redPixels++;
-//       total++;
-//     }
-//     return redPixels / total;
-//   };
+// //           if (lx > 20 && ly > 20 && lx < canvas.width - 20) {
+// //             const region = ctx.getImageData(lx - 10, ly - 10, 20, 20);
+// //             const red = detectRedness(region);
 
-//   useEffect(() => {
+// //             rednessHistory.current.push(red);
+// //             if (rednessHistory.current.length > 10)
+// //               rednessHistory.current.shift();
 
-//     let interval;
+// //             const avgRed =
+// //               rednessHistory.current.reduce((a, b) => a + b, 0) /
+// //               rednessHistory.current.length;
 
-//     const init = async () => {
-//       try {
-//         await loadScript("https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4/face_mesh.js");
-//         await loadScript("https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js");
+// //             if (avgRed > 0.45) redState.current = "high";
+// //             else if (avgRed > 0.30) redState.current = "moderate";
 
-//         const faceMesh = new window.FaceMesh({
-//           locateFile: (file) =>
-//             `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4/${file}`
-//         });
+// //             setRedness(redState.current);
+// //           }
+// //         });
 
-//         faceMesh.setOptions({
-//           maxNumFaces: 1,
-//           refineLandmarks: true,
-//           minDetectionConfidence: 0.5,
-//           minTrackingConfidence: 0.5
-//         });
+// //         faceMeshRef.current = faceMesh;
 
-//         faceMesh.onResults((results) => {
+// //         const camera = new window.Camera(videoRef.current, {
+// //           onFrame: async () => {
+// //             try {
+// //               if (videoRef.current && videoRef.current.readyState === 4) {
+// //                 await faceMeshRef.current.send({
+// //                   image: videoRef.current,
+// //                 });
+// //               }
+// //             } catch {
+// //               console.warn("Frame skipped");
+// //             }
+// //           },
+// //           width: 640,
+// //           height: 480
+// //         });
 
-//           const canvas = canvasRef.current;
-//           if (!canvas) return;
+// //         camera.start();
+// //         cameraRef.current = camera;
 
-//           const ctx = canvas.getContext("2d");
-//           ctx.clearRect(0, 0, canvas.width, canvas.height);
-//           ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
+// //         // 🧠 STRESS ENGINE
+// //         interval = setInterval(() => {
 
-//           if (!results.multiFaceLandmarks?.length) return;
+// //           const now = Date.now();
+// //           blinkTimes.current =
+// //             blinkTimes.current.filter(t => now - t < 60000);
 
-//           const lm = results.multiFaceLandmarks[0];
+// //           const rate = blinkTimes.current.length;
+// //           setBlinkRate(rate);
 
-//           /* ---------- BLINK ---------- */
-//           const raw = Math.abs(lm[159].y - lm[145].y);
-//           eyeHistory.current.push(raw);
-//           if (eyeHistory.current.length > 5) eyeHistory.current.shift();
+// //           let score = 100;
 
-//           const eyeDistance =
-//             eyeHistory.current.reduce((a, b) => a + b, 0) /
-//             eyeHistory.current.length;
+// //           if (rate < 15) score -= 5;
+// //           if (rate < 10) score -= 10;
+// //           if (rate < 6) score -= 15;
 
-//           if (eyeDistance < 0.025 && !eyeClosed.current)
-//             eyeClosed.current = true;
+// //           if (distanceRef.current === "too close") score -= 12;
+// //           if (distanceRef.current === "too far") score -= 6;
 
-//           if (eyeDistance > 0.03 && eyeClosed.current) {
-//             const now = Date.now();
-//             if (now - lastBlinkTime.current > 150) {
-//               blinkTimes.current.push(now);
-//               lastBlinkTime.current = now;
-//             }
-//             eyeClosed.current = false;
-//           }
+// //           if (headRef.current === "tilted") score -= 10;
 
-//           /* ---------- DISTANCE ---------- */
-//           const z = lm[1].z;
-//           distanceRef.current =
-//             z < -0.10 ? "too close" :
-//             z > -0.07 ? "too far" : "optimal";
-//           setDistance(distanceRef.current);
+// //           if (expressionRef.current === "drowsy") score -= 25;
+// //           else if (expressionRef.current === "shocked") score -= 8;
 
-//           /* ---------- HEAD ---------- */
-//           const tilt = (lm[263].y - lm[33].y) / (lm[263].x - lm[33].x);
-//           headRef.current = Math.abs(tilt) > 0.1 ? "tilted" : "aligned";
-//           setHeadPosition(headRef.current);
+// //           const redness =
+// //             rednessHistory.current.reduce((a, b) => a + b, 0) /
+// //             (rednessHistory.current.length || 1);
 
-//           /* ---------- EXPRESSION ---------- */
-//           const now = Date.now();
-//           let expression = "focused";
+// //           if (redness > 0.45) score -= 12;
+// //           else if (redness > 0.30) score -= 6;
 
-//           if (eyeDistance < 0.015) {
-//             if (!eyeCloseStart.current) eyeCloseStart.current = now;
-//             if (now - eyeCloseStart.current > 2000)
-//               expression = "drowsy";
-//           } else eyeCloseStart.current = null;
+// //           score = Math.max(20, Math.min(100, score));
 
-//           const mouthOpen = Math.abs(lm[13].y - lm[14].y);
-//           const mouthWidth = Math.abs(lm[61].x - lm[291].x);
+// //           smoothedScore.current = smooth(smoothedScore.current, score);
+// //           setStressScore(Math.round(smoothedScore.current));
 
-//           if (mouthOpen > 0.07) expression = "shocked";
-//           else if (mouthWidth > 0.065 && eyeDistance > 0.02)
-//             expression = "smile";
+// //         }, 1000);
 
-//           if (expressionRef.current !== expression) {
-//             expressionRef.current = expression;
-//             setExpression(expression);
-//           }
+// //       } catch (err) {
+// //         console.error("INIT FAILED:", err);
+// //       }
+// //     };
 
-//           /* ---------- REDNESS ---------- */
-//           const lx = lm[33].x * canvas.width;
-//           const ly = lm[33].y * canvas.height;
+// //     init();
 
-//           if (lx > 20 && ly > 20 && lx < canvas.width - 20) {
-//             const region = ctx.getImageData(lx - 10, ly - 10, 20, 20);
-//             const red = detectRedness(region);
+// //     return () => {
+// //       clearInterval(interval);
+// //       cameraRef.current?.stop();
+// //       faceMeshRef.current?.close();
+// //     };
 
-//             rednessHistory.current.push(red);
-//             if (rednessHistory.current.length > 10)
-//               rednessHistory.current.shift();
+// //   }, []);
 
-//             const avgRed =
-//               rednessHistory.current.reduce((a, b) => a + b, 0) /
-//               rednessHistory.current.length;
+// //   return (
+// //     <div className="w-full h-full">
+// //       <video ref={videoRef} className="hidden" />
+// //       <canvas
+// //         ref={canvasRef}
+// //         width="640"
+// //         height="480"
+// //         className="rounded-lg w-full h-full object-cover scale-x-[-1]"
+// //       />
+// //     </div>
+// //   );
+// // };
 
-//             if (avgRed > 0.45) redState.current = "high";
-//             else if (avgRed > 0.30) redState.current = "moderate";
+// // // export default WebcamFeed;
+// // import { useEffect, useRef } from "react";
 
-//             setRedness(redState.current);
-//           }
-//         });
+// // const WebcamFeed = ({
+// //   setBlinkRate = () => {},
+// //   setDistance = () => {},
+// //   setRedness = () => {},
+// //   setStressScore = () => {},
+// //   setHeadPosition = () => {},
+// //   setExpression = () => {}
+// // }) => {
 
-//         faceMeshRef.current = faceMesh;
+// //   const videoRef = useRef(null);
+// //   const canvasRef = useRef(null);
 
-//         const camera = new window.Camera(videoRef.current, {
-//           onFrame: async () => {
-//             if (document.visibilityState !== "visible") return;
-//             await faceMesh.send({ image: videoRef.current });
-//           },
-//           width: 640,
-//           height: 480
-//         });
+// //   const faceMeshRef = useRef(null);
+// //   const cameraRef = useRef(null);
 
-//         camera.start();
-//         cameraRef.current = camera;
+// //   const blinkTimes = useRef([]);
+// //   const eyeClosed = useRef(false);
+// //   const lastBlinkTime = useRef(0);
 
-//         /* ---------- STRESS ENGINE ---------- */
-//         interval = setInterval(() => {
+// //   const eyeHistory = useRef([]);
+// //   const rednessHistory = useRef([]);
 
-//           const now = Date.now();
-//           blinkTimes.current =
-//             blinkTimes.current.filter(t => now - t < 60000);
+// //   const expressionRef = useRef("focused");
+// //   const distanceRef = useRef("optimal");
+// //   const headRef = useRef("aligned");
 
-//           const rate = blinkTimes.current.length;
-//           setBlinkRate(rate);
+// //   const smoothedScore = useRef(100);
+// //   const eyeCloseStart = useRef(null);
+// //   const redState = useRef("normal");
 
-//           let score = 100;
+// //   // 🔥 UPDATED SMOOTHING HERE
+// //   const smooth = (prev, current) => prev *0.6 + current * 0.4;
 
-//           // Blink
-//           if (rate < 15) score -= 5;
-//           if (rate < 10) score -= 10;
-//           if (rate < 6) score -= 15;
+// //   const loadScript = (src) => {
+// //     return new Promise((resolve, reject) => {
+// //       if (document.querySelector(`script[src="${src}"]`)) return resolve();
 
-//           // Distance
-//           if (distanceRef.current === "too close") score -= 12;
-//           if (distanceRef.current === "too far") score -= 6;
+// //       const script = document.createElement("script");
+// //       script.src = src;
+// //       script.async = true;
+// //       script.onload = resolve;
+// //       script.onerror = reject;
+// //       document.body.appendChild(script);
+// //     });
+// //   };
 
-//           // Head
-//           if (headRef.current === "tilted") score -= 10;
+// //   const detectRedness = (imageData) => {
+// //     let redPixels = 0, total = 0;
+// //     const data = imageData.data;
 
-//           // Expression
-//           if (expressionRef.current === "drowsy") score -= 25;
-//           else if (expressionRef.current === "shocked") score -= 8;
+// //     for (let i = 0; i < data.length; i += 4) {
+// //       const r = data[i], g = data[i + 1], b = data[i + 2];
+// //       if (r > g * 1.15 && r > b * 1.15) redPixels++;
+// //       total++;
+// //     }
+// //     return redPixels / total;
+// //   };
 
-//           // Redness
-//           const redness =
-//             rednessHistory.current.reduce((a, b) => a + b, 0) /
-//             (rednessHistory.current.length || 1);
+// //   useEffect(() => {
 
-//           if (redness > 0.45) score -= 12;
-//           else if (redness > 0.30) score -= 6;
+// //     let interval;
 
-//           score = Math.max(20, Math.min(100, score));
+// //     const init = async () => {
+// //       try {
+// //         await loadScript("https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4/face_mesh.js");
+// //         await loadScript("https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js");
 
-//           smoothedScore.current = smooth(smoothedScore.current, score);
-//           setStressScore(Math.round(smoothedScore.current));
+// //         const faceMesh = new window.FaceMesh({
+// //           locateFile: (file) =>
+// //             `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4/${file}`
+// //         });
 
-//         }, 1000);
+// //         faceMesh.setOptions({
+// //           maxNumFaces: 1,
+// //           refineLandmarks: true,
+// //           minDetectionConfidence: 0.5,
+// //           minTrackingConfidence: 0.5
+// //         });
 
-//       } catch (err) {
-//         console.error("INIT FAILED:", err);
-//       }
-//     };
+// //         faceMesh.onResults((results) => {
+
+// //           const canvas = canvasRef.current;
+// //           if (!canvas) return;
+
+// //           const ctx = canvas.getContext("2d");
+// //           ctx.clearRect(0, 0, canvas.width, canvas.height);
+// //           ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
+
+// //           if (!results.multiFaceLandmarks?.length) return;
 
-//     init();
+// //           const lm = results.multiFaceLandmarks[0];
+
+// //           const raw = Math.abs(lm[159].y - lm[145].y);
+// //           eyeHistory.current.push(raw);
+// //           if (eyeHistory.current.length > 5) eyeHistory.current.shift();
 
-//     return () => {
-//       clearInterval(interval);
-//       cameraRef.current?.stop();
-//       faceMeshRef.current?.close();
-//     };
+// //           const eyeDistance =
+// //             eyeHistory.current.reduce((a, b) => a + b, 0) /
+// //             eyeHistory.current.length;
 
-//   }, []);
+// //           if (eyeDistance < 0.025 && !eyeClosed.current)
+// //             eyeClosed.current = true;
 
-//   return (
-//     <div className="w-full h-full">
-//       <video ref={videoRef} className="hidden" />
-//       <canvas
-//         ref={canvasRef}
-//         width="640"
-//         height="480"
-//         className="rounded-lg w-full h-full object-cover scale-x-[-1]"
-//       />
-//     </div>
-//   );
-// };
+// //           if (eyeDistance > 0.03 && eyeClosed.current) {
+// //             const now = Date.now();
+// //             if (now - lastBlinkTime.current > 150) {
+// //               blinkTimes.current.push(now);
+// //               lastBlinkTime.current = now;
+// //             }
+// //             eyeClosed.current = false;
+// //           }
 
-// export default WebcamFeed;
+// //           const z = lm[1].z;
+// //           distanceRef.current =
+// //             z < -0.10 ? "too close" :
+// //             z > -0.07 ? "too far" : "optimal";
+// //           setDistance(distanceRef.current);
 
-// import { useEffect, useRef } from "react";
+// //           const tilt = (lm[263].y - lm[33].y) / (lm[263].x - lm[33].x);
+// //           headRef.current = Math.abs(tilt) > 0.1 ? "tilted" : "aligned";
+// //           setHeadPosition(headRef.current);
 
-// const WebcamFeed = ({
-//   setBlinkRate = () => {},
-//   setDistance = () => {},
-//   setRedness = () => {},
-//   setStressScore = () => {},
-//   setHeadPosition = () => {},
-//   setExpression = () => {}
-// }) => {
+// //           const now = Date.now();
+// //           let expression = "focused";
 
-//   const videoRef = useRef(null);
-//   const canvasRef = useRef(null);
+// //           if (eyeDistance < 0.015) {
+// //             if (!eyeCloseStart.current) eyeCloseStart.current = now;
+// //             if (now - eyeCloseStart.current > 2000)
+// //               expression = "drowsy";
+// //           } else eyeCloseStart.current = null;
 
-//   const faceMeshRef = useRef(null);
-//   const cameraRef = useRef(null);
+// //           const mouthOpen = Math.abs(lm[13].y - lm[14].y);
+// //           const mouthWidth = Math.abs(lm[61].x - lm[291].x);
 
-//   const blinkTimes = useRef([]);
-//   const eyeClosed = useRef(false);
-//   const lastBlinkTime = useRef(0);
+// //           if (mouthOpen > 0.07) expression = "shocked";
+// //           else if (mouthWidth > 0.065 && eyeDistance > 0.02)
+// //             expression = "smile";
 
-//   const eyeHistory = useRef([]);
-//   const rednessHistory = useRef([]);
+// //           if (expressionRef.current !== expression) {
+// //             expressionRef.current = expression;
+// //             setExpression(expression);
+// //           }
 
-//   const expressionRef = useRef("focused");
-//   const distanceRef = useRef("optimal");
-//   const headRef = useRef("aligned");
+// //           const lx = lm[33].x * canvas.width;
+// //           const ly = lm[33].y * canvas.height;
 
-//   const smoothedScore = useRef(100);
-//   const eyeCloseStart = useRef(null);
-//   const redState = useRef("normal");
+// //           if (lx > 20 && ly > 20 && lx < canvas.width - 20) {
+// //             const region = ctx.getImageData(lx - 10, ly - 10, 20, 20);
+// //             const red = detectRedness(region);
 
-//   const smooth = (prev, current) => prev * 0.9 + current * 0.1;
+// //             rednessHistory.current.push(red);
+// //             if (rednessHistory.current.length > 10)
+// //               rednessHistory.current.shift();
 
-//   const loadScript = (src) => {
-//     return new Promise((resolve, reject) => {
-//       if (document.querySelector(`script[src="${src}"]`)) return resolve();
+// //             const avgRed =
+// //               rednessHistory.current.reduce((a, b) => a + b, 0) /
+// //               rednessHistory.current.length;
 
-//       const script = document.createElement("script");
-//       script.src = src;
-//       script.async = true;
-//       script.onload = resolve;
-//       script.onerror = reject;
-//       document.body.appendChild(script);
-//     });
-//   };
+// //             if (avgRed > 0.45) redState.current = "high";
+// //             else if (avgRed > 0.30) redState.current = "moderate";
 
-//   const detectRedness = (imageData) => {
-//     let redPixels = 0, total = 0;
-//     const data = imageData.data;
+// //             setRedness(redState.current);
+// //           }
+// //         });
 
-//     for (let i = 0; i < data.length; i += 4) {
-//       const r = data[i], g = data[i + 1], b = data[i + 2];
-//       if (r > g * 1.15 && r > b * 1.15) redPixels++;
-//       total++;
-//     }
-//     return redPixels / total;
-//   };
+// //         faceMeshRef.current = faceMesh;
 
-//   useEffect(() => {
+// //         const camera = new window.Camera(videoRef.current, {
+// //           onFrame: async () => {
+// //             try {
+// //               if (videoRef.current && videoRef.current.readyState === 4) {
+// //                 await faceMeshRef.current.send({
+// //                   image: videoRef.current,
+// //                 });
+// //               }
+// //             } catch {
+// //               console.warn("Frame skipped");
+// //             }
+// //           },
+// //           width: 640,
+// //           height: 480
+// //         });
 
-//     let interval;
+// //         camera.start();
+// //         cameraRef.current = camera;
 
-//     const init = async () => {
-//       try {
-//         await loadScript("https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4/face_mesh.js");
-//         await loadScript("https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js");
+// //         interval = setInterval(() => {
 
-//         const faceMesh = new window.FaceMesh({
-//           locateFile: (file) =>
-//             `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4/${file}`
-//         });
+// //           const now = Date.now();
+// //           blinkTimes.current =
+// //             blinkTimes.current.filter(t => now - t < 60000);
 
-//         faceMesh.setOptions({
-//           maxNumFaces: 1,
-//           refineLandmarks: true,
-//           minDetectionConfidence: 0.5,
-//           minTrackingConfidence: 0.5
-//         });
+// //           const rate = blinkTimes.current.length;
+// //           setBlinkRate(rate);
 
-//         faceMesh.onResults((results) => {
+// //           let score = 100;
 
-//           const canvas = canvasRef.current;
-//           if (!canvas) return;
+// //           if (rate < 15) score -= 5;
+// //           if (rate < 10) score -= 10;
+// //           if (rate < 6) score -= 15;
 
-//           const ctx = canvas.getContext("2d");
-//           ctx.clearRect(0, 0, canvas.width, canvas.height);
-//           ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
+// //           if (distanceRef.current === "too close") score -= 12;
+// //           if (distanceRef.current === "too far") score -= 6;
 
-//           if (!results.multiFaceLandmarks?.length) return;
+// //           if (headRef.current === "tilted") score -= 10;
 
-//           const lm = results.multiFaceLandmarks[0];
+// //           if (expressionRef.current === "drowsy") score -= 25;
+// //           else if (expressionRef.current === "shocked") score -= 8;
 
-//           // 👁️ BLINK
-//           const raw = Math.abs(lm[159].y - lm[145].y);
-//           eyeHistory.current.push(raw);
-//           if (eyeHistory.current.length > 5) eyeHistory.current.shift();
+// //           const redness =
+// //             rednessHistory.current.reduce((a, b) => a + b, 0) /
+// //             (rednessHistory.current.length || 1);
 
-//           const eyeDistance =
-//             eyeHistory.current.reduce((a, b) => a + b, 0) /
-//             eyeHistory.current.length;
+// //           if (redness > 0.45) score -= 12;
+// //           else if (redness > 0.30) score -= 6;
 
-//           if (eyeDistance < 0.025 && !eyeClosed.current)
-//             eyeClosed.current = true;
+// //           score = Math.max(20, Math.min(100, score));
 
-//           if (eyeDistance > 0.03 && eyeClosed.current) {
-//             const now = Date.now();
-//             if (now - lastBlinkTime.current > 150) {
-//               blinkTimes.current.push(now);
-//               lastBlinkTime.current = now;
-//             }
-//             eyeClosed.current = false;
-//           }
+// //           // 🔥 SMOOTHING APPLIED HERE
+// //           smoothedScore.current = smooth(smoothedScore.current, score);
 
-//           // 📏 DISTANCE
-//           const z = lm[1].z;
-//           distanceRef.current =
-//             z < -0.10 ? "too close" :
-//             z > -0.07 ? "too far" : "optimal";
-//           setDistance(distanceRef.current);
+// //           setStressScore(Math.round(smoothedScore.current));
 
-//           // 🧍 HEAD
-//           const tilt = (lm[263].y - lm[33].y) / (lm[263].x - lm[33].x);
-//           headRef.current = Math.abs(tilt) > 0.1 ? "tilted" : "aligned";
-//           setHeadPosition(headRef.current);
+// //         }, 1000);
 
-//           // 😵 EXPRESSION (FIXED)
-//           const now = Date.now();
-//           let expression = "focused";
+// //       } catch (err) {
+// //         console.error("INIT FAILED:", err);
+// //       }
+// //     };
 
-//           if (eyeDistance < 0.015) {
-//             if (!eyeCloseStart.current) eyeCloseStart.current = now;
-//             if (now - eyeCloseStart.current > 2000)
-//               expression = "drowsy";
-//           } else eyeCloseStart.current = null;
+// //     init();
 
-//           const mouthOpen = Math.abs(lm[13].y - lm[14].y);
-//           const mouthWidth = Math.abs(lm[61].x - lm[291].x);
+// //     return () => {
+// //       clearInterval(interval);
+// //       cameraRef.current?.stop();
+// //       faceMeshRef.current?.close();
+// //     };
 
-//           if (mouthOpen > 0.07) expression = "shocked";
-//           else if (mouthWidth > 0.065 && eyeDistance > 0.02)
-//             expression = "smile";
+// //   }, []);
 
-//           if (expressionRef.current !== expression) {
-//             expressionRef.current = expression;
-//             setExpression(expression);
-//           }
-
-//           // 👁️ REDNESS (STABLE)
-//           const lx = lm[33].x * canvas.width;
-//           const ly = lm[33].y * canvas.height;
-
-//           if (lx > 20 && ly > 20 && lx < canvas.width - 20) {
-//             const region = ctx.getImageData(lx - 10, ly - 10, 20, 20);
-//             const red = detectRedness(region);
-
-//             rednessHistory.current.push(red);
-//             if (rednessHistory.current.length > 10)
-//               rednessHistory.current.shift();
-
-//             const avgRed =
-//               rednessHistory.current.reduce((a, b) => a + b, 0) /
-//               rednessHistory.current.length;
-
-//             if (avgRed > 0.45) redState.current = "high";
-//             else if (avgRed > 0.30) redState.current = "moderate";
-
-//             setRedness(redState.current);
-//           }
-//         });
-
-//         faceMeshRef.current = faceMesh;
-
-//         const camera = new window.Camera(videoRef.current, {
-//           onFrame: async () => {
-//             try {
-//               if (videoRef.current && videoRef.current.readyState === 4) {
-//                 await faceMeshRef.current.send({
-//                   image: videoRef.current,
-//                 });
-//               }
-//             } catch {
-//               console.warn("Frame skipped");
-//             }
-//           },
-//           width: 640,
-//           height: 480
-//         });
-
-//         camera.start();
-//         cameraRef.current = camera;
-
-//         // 🧠 STRESS ENGINE
-//         interval = setInterval(() => {
-
-//           const now = Date.now();
-//           blinkTimes.current =
-//             blinkTimes.current.filter(t => now - t < 60000);
-
-//           const rate = blinkTimes.current.length;
-//           setBlinkRate(rate);
-
-//           let score = 100;
-
-//           if (rate < 15) score -= 5;
-//           if (rate < 10) score -= 10;
-//           if (rate < 6) score -= 15;
-
-//           if (distanceRef.current === "too close") score -= 12;
-//           if (distanceRef.current === "too far") score -= 6;
-
-//           if (headRef.current === "tilted") score -= 10;
-
-//           if (expressionRef.current === "drowsy") score -= 25;
-//           else if (expressionRef.current === "shocked") score -= 8;
-
-//           const redness =
-//             rednessHistory.current.reduce((a, b) => a + b, 0) /
-//             (rednessHistory.current.length || 1);
-
-//           if (redness > 0.45) score -= 12;
-//           else if (redness > 0.30) score -= 6;
-
-//           score = Math.max(20, Math.min(100, score));
-
-//           smoothedScore.current = smooth(smoothedScore.current, score);
-//           setStressScore(Math.round(smoothedScore.current));
-
-//         }, 1000);
-
-//       } catch (err) {
-//         console.error("INIT FAILED:", err);
-//       }
-//     };
-
-//     init();
-
-//     return () => {
-//       clearInterval(interval);
-//       cameraRef.current?.stop();
-//       faceMeshRef.current?.close();
-//     };
-
-//   }, []);
-
-//   return (
-//     <div className="w-full h-full">
-//       <video ref={videoRef} className="hidden" />
-//       <canvas
-//         ref={canvasRef}
-//         width="640"
-//         height="480"
-//         className="rounded-lg w-full h-full object-cover scale-x-[-1]"
-//       />
-//     </div>
-//   );
-// };
+// //   return (
+// //     <div className="w-full h-full">
+// //       <video ref={videoRef} className="hidden" />
+// //       <canvas
+// //         ref={canvasRef}
+// //         width="640"
+// //         height="480"
+// //         className="rounded-lg w-full h-full object-cover scale-x-[-1]"
+// //       />
+// //     </div>
+// //   );
+// // };
 
 // // export default WebcamFeed;
 // import { useEffect, useRef } from "react";
@@ -1576,21 +1832,8 @@
 //   const eyeCloseStart = useRef(null);
 //   const redState = useRef("normal");
 
-//   // 🔥 UPDATED SMOOTHING HERE
-//   const smooth = (prev, current) => prev *0.6 + current * 0.4;
-
-//   const loadScript = (src) => {
-//     return new Promise((resolve, reject) => {
-//       if (document.querySelector(`script[src="${src}"]`)) return resolve();
-
-//       const script = document.createElement("script");
-//       script.src = src;
-//       script.async = true;
-//       script.onload = resolve;
-//       script.onerror = reject;
-//       document.body.appendChild(script);
-//     });
-//   };
+//   // 🔥 FINAL SMOOTHING (balanced)
+//   const smooth = (prev, current) => prev * 0.6 + current * 0.4;
 
 //   const detectRedness = (imageData) => {
 //     let redPixels = 0, total = 0;
@@ -1609,171 +1852,191 @@
 //     let interval;
 
 //     const init = async () => {
-//       try {
-//         await loadScript("https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4/face_mesh.js");
-//         await loadScript("https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js");
 
-//         const faceMesh = new window.FaceMesh({
-//           locateFile: (file) =>
-//             `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4/${file}`
-//         });
-
-//         faceMesh.setOptions({
-//           maxNumFaces: 1,
-//           refineLandmarks: true,
-//           minDetectionConfidence: 0.5,
-//           minTrackingConfidence: 0.5
-//         });
-
-//         faceMesh.onResults((results) => {
-
-//           const canvas = canvasRef.current;
-//           if (!canvas) return;
-
-//           const ctx = canvas.getContext("2d");
-//           ctx.clearRect(0, 0, canvas.width, canvas.height);
-//           ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
-
-//           if (!results.multiFaceLandmarks?.length) return;
-
-//           const lm = results.multiFaceLandmarks[0];
-
-//           const raw = Math.abs(lm[159].y - lm[145].y);
-//           eyeHistory.current.push(raw);
-//           if (eyeHistory.current.length > 5) eyeHistory.current.shift();
-
-//           const eyeDistance =
-//             eyeHistory.current.reduce((a, b) => a + b, 0) /
-//             eyeHistory.current.length;
-
-//           if (eyeDistance < 0.025 && !eyeClosed.current)
-//             eyeClosed.current = true;
-
-//           if (eyeDistance > 0.03 && eyeClosed.current) {
-//             const now = Date.now();
-//             if (now - lastBlinkTime.current > 150) {
-//               blinkTimes.current.push(now);
-//               lastBlinkTime.current = now;
-//             }
-//             eyeClosed.current = false;
-//           }
-
-//           const z = lm[1].z;
-//           distanceRef.current =
-//             z < -0.10 ? "too close" :
-//             z > -0.07 ? "too far" : "optimal";
-//           setDistance(distanceRef.current);
-
-//           const tilt = (lm[263].y - lm[33].y) / (lm[263].x - lm[33].x);
-//           headRef.current = Math.abs(tilt) > 0.1 ? "tilted" : "aligned";
-//           setHeadPosition(headRef.current);
-
-//           const now = Date.now();
-//           let expression = "focused";
-
-//           if (eyeDistance < 0.015) {
-//             if (!eyeCloseStart.current) eyeCloseStart.current = now;
-//             if (now - eyeCloseStart.current > 2000)
-//               expression = "drowsy";
-//           } else eyeCloseStart.current = null;
-
-//           const mouthOpen = Math.abs(lm[13].y - lm[14].y);
-//           const mouthWidth = Math.abs(lm[61].x - lm[291].x);
-
-//           if (mouthOpen > 0.07) expression = "shocked";
-//           else if (mouthWidth > 0.065 && eyeDistance > 0.02)
-//             expression = "smile";
-
-//           if (expressionRef.current !== expression) {
-//             expressionRef.current = expression;
-//             setExpression(expression);
-//           }
-
-//           const lx = lm[33].x * canvas.width;
-//           const ly = lm[33].y * canvas.height;
-
-//           if (lx > 20 && ly > 20 && lx < canvas.width - 20) {
-//             const region = ctx.getImageData(lx - 10, ly - 10, 20, 20);
-//             const red = detectRedness(region);
-
-//             rednessHistory.current.push(red);
-//             if (rednessHistory.current.length > 10)
-//               rednessHistory.current.shift();
-
-//             const avgRed =
-//               rednessHistory.current.reduce((a, b) => a + b, 0) /
-//               rednessHistory.current.length;
-
-//             if (avgRed > 0.45) redState.current = "high";
-//             else if (avgRed > 0.30) redState.current = "moderate";
-
-//             setRedness(redState.current);
-//           }
-//         });
-
-//         faceMeshRef.current = faceMesh;
-
-//         const camera = new window.Camera(videoRef.current, {
-//           onFrame: async () => {
-//             try {
-//               if (videoRef.current && videoRef.current.readyState === 4) {
-//                 await faceMeshRef.current.send({
-//                   image: videoRef.current,
-//                 });
-//               }
-//             } catch {
-//               console.warn("Frame skipped");
-//             }
-//           },
-//           width: 640,
-//           height: 480
-//         });
-
-//         camera.start();
-//         cameraRef.current = camera;
-
-//         interval = setInterval(() => {
-
-//           const now = Date.now();
-//           blinkTimes.current =
-//             blinkTimes.current.filter(t => now - t < 60000);
-
-//           const rate = blinkTimes.current.length;
-//           setBlinkRate(rate);
-
-//           let score = 100;
-
-//           if (rate < 15) score -= 5;
-//           if (rate < 10) score -= 10;
-//           if (rate < 6) score -= 15;
-
-//           if (distanceRef.current === "too close") score -= 12;
-//           if (distanceRef.current === "too far") score -= 6;
-
-//           if (headRef.current === "tilted") score -= 10;
-
-//           if (expressionRef.current === "drowsy") score -= 25;
-//           else if (expressionRef.current === "shocked") score -= 8;
-
-//           const redness =
-//             rednessHistory.current.reduce((a, b) => a + b, 0) /
-//             (rednessHistory.current.length || 1);
-
-//           if (redness > 0.45) score -= 12;
-//           else if (redness > 0.30) score -= 6;
-
-//           score = Math.max(20, Math.min(100, score));
-
-//           // 🔥 SMOOTHING APPLIED HERE
-//           smoothedScore.current = smooth(smoothedScore.current, score);
-
-//           setStressScore(Math.round(smoothedScore.current));
-
-//         }, 1000);
-
-//       } catch (err) {
-//         console.error("INIT FAILED:", err);
+//       // ✅ IMPORTANT: Use ONLY global scripts (from index.html)
+//       if (!window.FaceMesh || !window.Camera) {
+//         console.error("MediaPipe not loaded properly");
+//         return;
 //       }
+
+//       const faceMesh = new window.FaceMesh({
+//         locateFile: (file) =>
+//           `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4/${file}`
+//       });
+
+//       faceMesh.setOptions({
+//         maxNumFaces: 1,
+//         refineLandmarks: true,
+//         minDetectionConfidence: 0.5,
+//         minTrackingConfidence: 0.5
+//       });
+
+//       faceMesh.onResults((results) => {
+
+//         const canvas = canvasRef.current;
+//         if (!canvas) return;
+
+//         const ctx = canvas.getContext("2d");
+//         ctx.clearRect(0, 0, canvas.width, canvas.height);
+//         ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
+
+//         if (!results.multiFaceLandmarks?.length) return;
+
+//         const lm = results.multiFaceLandmarks[0];
+
+//         /* ---------- 👁️ BLINK ---------- */
+//         const raw = Math.abs(lm[159].y - lm[145].y);
+
+//         eyeHistory.current.push(raw);
+//         if (eyeHistory.current.length > 5) eyeHistory.current.shift();
+
+//         const eyeDistance =
+//           eyeHistory.current.reduce((a, b) => a + b, 0) /
+//           eyeHistory.current.length;
+
+//         if (eyeDistance < 0.025 && !eyeClosed.current)
+//           eyeClosed.current = true;
+
+//         if (eyeDistance > 0.03 && eyeClosed.current) {
+//           const now = Date.now();
+//           if (now - lastBlinkTime.current > 150) {
+//             blinkTimes.current.push(now);
+//             lastBlinkTime.current = now;
+//           }
+//           eyeClosed.current = false;
+//         }
+
+//         /* ---------- 📏 DISTANCE ---------- */
+//         const z = lm[1].z;
+//         distanceRef.current =
+//           z < -0.10 ? "too close" :
+//           z > -0.07 ? "too far" : "optimal";
+
+//         setDistance(distanceRef.current);
+
+//         /* ---------- 🧍 HEAD ---------- */
+//         const tilt = (lm[263].y - lm[33].y) / (lm[263].x - lm[33].x);
+//         headRef.current = Math.abs(tilt) > 0.1 ? "tilted" : "aligned";
+
+//         setHeadPosition(headRef.current);
+
+//         /* ---------- 😵 EXPRESSION ---------- */
+//         const now = Date.now();
+//         let expression = "focused";
+
+//         if (eyeDistance < 0.015) {
+//           if (!eyeCloseStart.current) eyeCloseStart.current = now;
+//           if (now - eyeCloseStart.current > 2000)
+//             expression = "drowsy";
+//         } else {
+//           eyeCloseStart.current = null;
+//         }
+
+//         const mouthOpen = Math.abs(lm[13].y - lm[14].y);
+//         const mouthWidth = Math.abs(lm[61].x - lm[291].x);
+
+//         if (mouthOpen > 0.07) expression = "shocked";
+//         else if (mouthWidth > 0.065 && eyeDistance > 0.02)
+//           expression = "smile";
+
+//         if (expressionRef.current !== expression) {
+//           expressionRef.current = expression;
+//           setExpression(expression);
+//         }
+
+//         /* ---------- 👁️ REDNESS ---------- */
+//         const lx = lm[33].x * canvas.width;
+//         const ly = lm[33].y * canvas.height;
+
+//         if (lx > 20 && ly > 20 && lx < canvas.width - 20) {
+//           const region = ctx.getImageData(lx - 10, ly - 10, 20, 20);
+//           const red = detectRedness(region);
+
+//           rednessHistory.current.push(red);
+//           if (rednessHistory.current.length > 10)
+//             rednessHistory.current.shift();
+
+//           const avgRed =
+//             rednessHistory.current.reduce((a, b) => a + b, 0) /
+//             rednessHistory.current.length;
+
+//           // ✅ FIXED (no stuck state)
+//           if (avgRed > 0.45) redState.current = "high";
+//           else if (avgRed > 0.30) redState.current = "moderate";
+//           else redState.current = "normal";
+
+//           setRedness(redState.current);
+//         }
+
+//       });
+
+//       faceMeshRef.current = faceMesh;
+
+//       const camera = new window.Camera(videoRef.current, {
+//         onFrame: async () => {
+//           try {
+//             if (videoRef.current?.readyState === 4) {
+//               await faceMeshRef.current.send({
+//                 image: videoRef.current,
+//               });
+//             }
+//           } catch {
+//             // silent skip (important for stability)
+//           }
+//         },
+//         width: 640,
+//         height: 480
+//       });
+
+//       camera.start();
+//       cameraRef.current = camera;
+
+//       /* ---------- 🧠 STRESS ENGINE ---------- */
+//       interval = setInterval(() => {
+
+//         const now = Date.now();
+
+//         blinkTimes.current =
+//           blinkTimes.current.filter(t => now - t < 60000);
+
+//         const rate = blinkTimes.current.length;
+//         setBlinkRate(rate);
+
+//         let score = 100;
+
+//         // Blink
+//         if (rate < 15) score -= 5;
+//         if (rate < 10) score -= 10;
+//         if (rate < 6) score -= 15;
+
+//         // Distance
+//         if (distanceRef.current === "too close") score -= 12;
+//         if (distanceRef.current === "too far") score -= 6;
+
+//         // Head
+//         if (headRef.current === "tilted") score -= 10;
+
+//         // Expression
+//         if (expressionRef.current === "drowsy") score -= 25;
+//         else if (expressionRef.current === "shocked") score -= 8;
+
+//         // Redness
+//         const redness =
+//           rednessHistory.current.reduce((a, b) => a + b, 0) /
+//           (rednessHistory.current.length || 1);
+
+//         if (redness > 0.45) score -= 12;
+//         else if (redness > 0.30) score -= 6;
+
+//         score = Math.max(20, Math.min(100, score));
+
+//         // 🔥 SMOOTHING
+//         smoothedScore.current = smooth(smoothedScore.current, score);
+
+//         setStressScore(Math.round(smoothedScore.current));
+
+//       }, 1000);
+
 //     };
 
 //     init();
@@ -1800,16 +2063,20 @@
 // };
 
 // export default WebcamFeed;
-import { useEffect, useRef } from "react";
 
-const WebcamFeed = ({
+
+
+
+import { useEffect, useRef, useImperativeHandle, forwardRef } from "react";
+
+const WebcamFeed = forwardRef(({
   setBlinkRate = () => {},
   setDistance = () => {},
   setRedness = () => {},
   setStressScore = () => {},
   setHeadPosition = () => {},
   setExpression = () => {}
-}) => {
+}, ref) => {
 
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -1832,8 +2099,32 @@ const WebcamFeed = ({
   const eyeCloseStart = useRef(null);
   const redState = useRef("normal");
 
-  // 🔥 FINAL SMOOTHING (balanced)
   const smooth = (prev, current) => prev * 0.6 + current * 0.4;
+
+  /* 🔥 PiP FUNCTION */
+  const enablePiP = async () => {
+    try {
+      const video = videoRef.current;
+      if (!video) return;
+
+      if (!document.pictureInPictureEnabled) {
+        alert("PiP not supported");
+        return;
+      }
+
+      if (document.pictureInPictureElement) {
+        await document.exitPictureInPicture();
+      } else {
+        await video.requestPictureInPicture();
+      }
+    } catch (err) {
+      console.error("PiP error:", err);
+    }
+  };
+
+  useImperativeHandle(ref, () => ({
+    enablePiP
+  }));
 
   const detectRedness = (imageData) => {
     let redPixels = 0, total = 0;
@@ -1848,16 +2139,11 @@ const WebcamFeed = ({
   };
 
   useEffect(() => {
-
     let interval;
 
     const init = async () => {
 
-      // ✅ IMPORTANT: Use ONLY global scripts (from index.html)
-      if (!window.FaceMesh || !window.Camera) {
-        console.error("MediaPipe not loaded properly");
-        return;
-      }
+      if (!window.FaceMesh || !window.Camera) return;
 
       const faceMesh = new window.FaceMesh({
         locateFile: (file) =>
@@ -1877,14 +2163,12 @@ const WebcamFeed = ({
         if (!canvas) return;
 
         const ctx = canvas.getContext("2d");
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
 
         if (!results.multiFaceLandmarks?.length) return;
 
         const lm = results.multiFaceLandmarks[0];
 
-        /* ---------- 👁️ BLINK ---------- */
         const raw = Math.abs(lm[159].y - lm[145].y);
 
         eyeHistory.current.push(raw);
@@ -1906,7 +2190,6 @@ const WebcamFeed = ({
           eyeClosed.current = false;
         }
 
-        /* ---------- 📏 DISTANCE ---------- */
         const z = lm[1].z;
         distanceRef.current =
           z < -0.10 ? "too close" :
@@ -1914,13 +2197,11 @@ const WebcamFeed = ({
 
         setDistance(distanceRef.current);
 
-        /* ---------- 🧍 HEAD ---------- */
         const tilt = (lm[263].y - lm[33].y) / (lm[263].x - lm[33].x);
         headRef.current = Math.abs(tilt) > 0.1 ? "tilted" : "aligned";
 
         setHeadPosition(headRef.current);
 
-        /* ---------- 😵 EXPRESSION ---------- */
         const now = Date.now();
         let expression = "focused";
 
@@ -1932,19 +2213,11 @@ const WebcamFeed = ({
           eyeCloseStart.current = null;
         }
 
-        const mouthOpen = Math.abs(lm[13].y - lm[14].y);
-        const mouthWidth = Math.abs(lm[61].x - lm[291].x);
-
-        if (mouthOpen > 0.07) expression = "shocked";
-        else if (mouthWidth > 0.065 && eyeDistance > 0.02)
-          expression = "smile";
-
         if (expressionRef.current !== expression) {
           expressionRef.current = expression;
           setExpression(expression);
         }
 
-        /* ---------- 👁️ REDNESS ---------- */
         const lx = lm[33].x * canvas.width;
         const ly = lm[33].y * canvas.height;
 
@@ -1960,28 +2233,22 @@ const WebcamFeed = ({
             rednessHistory.current.reduce((a, b) => a + b, 0) /
             rednessHistory.current.length;
 
-          // ✅ FIXED (no stuck state)
           if (avgRed > 0.45) redState.current = "high";
           else if (avgRed > 0.30) redState.current = "moderate";
           else redState.current = "normal";
 
           setRedness(redState.current);
         }
-
       });
 
       faceMeshRef.current = faceMesh;
 
       const camera = new window.Camera(videoRef.current, {
         onFrame: async () => {
-          try {
-            if (videoRef.current?.readyState === 4) {
-              await faceMeshRef.current.send({
-                image: videoRef.current,
-              });
-            }
-          } catch {
-            // silent skip (important for stability)
+          if (videoRef.current?.readyState === 4) {
+            await faceMeshRef.current.send({
+              image: videoRef.current,
+            });
           }
         },
         width: 640,
@@ -1991,9 +2258,7 @@ const WebcamFeed = ({
       camera.start();
       cameraRef.current = camera;
 
-      /* ---------- 🧠 STRESS ENGINE ---------- */
       interval = setInterval(() => {
-
         const now = Date.now();
 
         blinkTimes.current =
@@ -2004,23 +2269,15 @@ const WebcamFeed = ({
 
         let score = 100;
 
-        // Blink
         if (rate < 15) score -= 5;
         if (rate < 10) score -= 10;
         if (rate < 6) score -= 15;
 
-        // Distance
         if (distanceRef.current === "too close") score -= 12;
         if (distanceRef.current === "too far") score -= 6;
 
-        // Head
         if (headRef.current === "tilted") score -= 10;
 
-        // Expression
-        if (expressionRef.current === "drowsy") score -= 25;
-        else if (expressionRef.current === "shocked") score -= 8;
-
-        // Redness
         const redness =
           rednessHistory.current.reduce((a, b) => a + b, 0) /
           (rednessHistory.current.length || 1);
@@ -2030,13 +2287,11 @@ const WebcamFeed = ({
 
         score = Math.max(20, Math.min(100, score));
 
-        // 🔥 SMOOTHING
         smoothedScore.current = smooth(smoothedScore.current, score);
 
         setStressScore(Math.round(smoothedScore.current));
 
       }, 1000);
-
     };
 
     init();
@@ -2051,7 +2306,13 @@ const WebcamFeed = ({
 
   return (
     <div className="w-full h-full">
-      <video ref={videoRef} className="hidden" />
+      <video
+        ref={videoRef}
+        autoPlay
+        playsInline
+        muted
+        className="absolute w-0 h-0 opacity-0"
+      />
       <canvas
         ref={canvasRef}
         width="640"
@@ -2060,6 +2321,6 @@ const WebcamFeed = ({
       />
     </div>
   );
-};
+});
 
 export default WebcamFeed;
