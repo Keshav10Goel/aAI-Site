@@ -328,8 +328,7 @@ useEffect(() => {
     const { data } = await supabase.auth.getUser();
 
     if (!data?.user) {
-      setPendingStart(true);
-      setShowAuthPopup(true);
+      navigate("/login");
       return;
     }
 
@@ -514,8 +513,7 @@ return Math.abs(headPosition.yaw) < 10 &&
 
           {/* ✅ PROGRESS BUTTON */}
          <button
-  onClick={() => window.open(window.location.origin + "/progress", "_blank")}
->
+onClick={() => navigate("/progress")}>
   Progress
 </button>
 

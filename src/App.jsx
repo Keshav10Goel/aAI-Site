@@ -147,6 +147,7 @@ import React, { useEffect, useState } from "react";
 import { supabase } from "./lib/supabase";
 
 // Pages
+import ProtectedRoute from "./components/ProtectedRoute";
 import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
 import Progress from "./pages/Progress";
@@ -205,8 +206,23 @@ function App() {
       <Route path="/verify" element={<Verify />} />
 
       {/* 🚀 App */}
-      <Route path="/monitor" element={<Dashboard user={user} />} />
-      <Route path="/progress" element={<Progress user={user} />} />
+      <Route
+  path="/monitor"
+  element={
+    <ProtectedRoute user={user}>
+      <Dashboard user={user} />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/progress"
+  element={
+    <ProtectedRoute user={user}>
+      <Progress user={user} />
+    </ProtectedRoute>
+  }
+/>
 
       {/* ❌ Fallback */}
       <Route path="*" element={<Navigate to="/" />} />
