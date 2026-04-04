@@ -513,12 +513,11 @@ return Math.abs(headPosition.yaw) < 10 &&
         <div className="flex items-center gap-6">
 
           {/* ✅ PROGRESS BUTTON */}
-          <button
-            onClick={() => window.open("/progress", "_blank")}
-            className="text-[#9CA3AF] hover:text-[#A855F7]"
-          >
-            Progress
-          </button>
+         <button
+  onClick={() => window.open(window.location.origin + "/progress", "_blank")}
+>
+  Progress
+</button>
 
           <button
             onClick={() => supabase.auth.signOut()}
