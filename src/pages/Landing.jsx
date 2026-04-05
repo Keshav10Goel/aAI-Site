@@ -1677,7 +1677,7 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { Eye, Activity, Monitor, Brain, UserCircle } from "lucide-react";
 import ProfileModal from "../components/ProfileModal";
-
+import Footer from "../components/Footer";
 const Landing = () => {
   const navigate = useNavigate();
   const [showProfile, setShowProfile] = useState(false);
@@ -1812,6 +1812,7 @@ const Landing = () => {
       </section>
 
       {showProfile && <ProfileModal close={() => setShowProfile(false)} />}
+        <Footer />
     </div>
   );
 };
