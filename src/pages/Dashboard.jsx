@@ -289,7 +289,7 @@ const Dashboard = () => {
 
   const [isMonitoring, setIsMonitoring] = useState(false);
   const [isPiP, setIsPiP] = useState(false);
-
+  const [isFaceVisible, setIsFaceVisible] = useState(false);
   const [blinkRate, setBlinkRate] = useState(0);
   const [distance, setDistance] = useState("unknown");
   const [expression, setExpression] = useState("neutral");
@@ -298,7 +298,9 @@ const Dashboard = () => {
   const [stressScore, setStressScore] = useState(100);
   const [screenTime, setScreenTime] = useState(0);
 
-  const startTimeRef = useRef(null);
+  
+  const activeStartRef = useRef(null);
+const accumulatedTimeRef = useRef(0);
   const historyRef = useRef({ blink: [], stress: [] });
   const intervalRef = useRef(null);
   const badStartRef = useRef(null);
@@ -309,6 +311,20 @@ const Dashboard = () => {
       Notification.requestPermission();
     }
   }, []);
+  useEffect(() => {
+  if (!isMonitoring) return;
+
+  if (isFaceVisible) {
+    if (!activeStartRef.current) {
+      activeStartRef.current = Date.now();
+    }
+  } else {
+    if (activeStartRef.current) {
+      accumulatedTimeRef.current += Date.now() - activeStartRef.current;
+      activeStartRef.current = null;
+    }
+  }
+}, [isFaceVisible, isMonitoring]);
   /* ---------------- PiP STATE SYNC ---------------- */
 useEffect(() => {
   const handlePiPClose = () => {
@@ -321,6 +337,21 @@ useEffect(() => {
     document.removeEventListener("leavepictureinpicture", handlePiPClose);
   };
 }, []);
+useEffect(() => {
+  if (!isMonitoring) return;
+
+  const timer = setInterval(() => {
+    let total = accumulatedTimeRef.current;
+
+    if (activeStartRef.current) {
+      total += Date.now() - activeStartRef.current;
+    }
+
+    setScreenTime(Math.floor(total / 60000));
+  }, 5000);
+
+  return () => clearInterval(timer);
+}, [isMonitoring]);
 
   /* ---------------- MONITOR TOGGLE ---------------- */
   const handleToggleMonitoring = async () => {
@@ -349,7 +380,7 @@ useEffect(() => {
     } else {
       // ================= START =================
 
-      startTimeRef.current = Date.now();
+      // startTimeRef.current = Date.now();
     }
 
     // Toggle state LAST
@@ -373,17 +404,7 @@ useEffect(() => {
   
 
   /* ---------------- SCREEN TIME ---------------- */
-  useEffect(() => {
-    if (!isMonitoring) return;
-
-    const timer = setInterval(() => {
-      const min = Math.floor((Date.now() - startTimeRef.current) / 60000);
-      setScreenTime(min);
-    }, 5000);
-
-    return () => clearInterval(timer);
-  }, [isMonitoring]);
-
+ 
   /* ---------------- HISTORY TRACK ---------------- */
   useEffect(() => {
     if (!isMonitoring) return;
@@ -543,6 +564,9 @@ onClick={() => window.open("/progress","_blank")}>
               setStressScore={setStressScore}
               setHeadPosition={setHeadPosition}
               setExpression={setExpression}
+              setIsFaceVisible={setIsFaceVisible}
+              
+              
             />
           ) : (
             <div className="h-[250px] flex items-center justify-center text-gray-400">

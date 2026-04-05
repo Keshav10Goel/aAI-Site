@@ -933,7 +933,8 @@ const WebcamFeed = forwardRef((props, ref) => {
     setStressScore,
     setHeadPosition,
     setExpression,
-    screenTime
+    screenTime,
+    setIsFaceVisible 
   } = props;
 
   const videoRef = useRef(null);
@@ -1068,14 +1069,15 @@ if (!ctx) return;
 
     drawUI(ctx, canvas);
 
-    if (!res.multiFaceLandmarks?.length) return;
-
-    lastFaceTime.current = Date.now();
-
-    const lm = res.multiFaceLandmarks[0];
-    const w = res.image.width;
-    const h = res.image.height;
-
+  if (!res.multiFaceLandmarks?.length) {
+    setIsFaceVisible(false);
+    return;
+  }
+  const lm = res.multiFaceLandmarks[0];
+setIsFaceVisible(true);
+lastFaceTime.current = Date.now();
+const w = canvas.width;
+const h = canvas.height;
     /* BLINK */
 const ear = computeEAR(lm);
 
@@ -1191,6 +1193,7 @@ expressionRef.current = exprState;
       if (!faceVisible) {
         smoothed.current = 0;
         setStressScore(0);
+        setIsFaceVisible(false);
         return;
       }
 
