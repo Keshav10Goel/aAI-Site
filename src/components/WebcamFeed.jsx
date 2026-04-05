@@ -890,7 +890,7 @@ import { useEffect, useRef, useImperativeHandle, forwardRef, useCallback } from 
 /* CONSTANTS */
 const BLINK_EAR_THRESHOLD = 0.2;
 const BLINK_EAR_OPEN_THRESHOLD = 0.25;
-const BLINK_DEBOUNCE_MS = 120;
+const BLINK_DEBOUNCE_MS = 300;
 const STRESS_UPDATE_INTERVAL_MS = 1000;
 const STATE_THROTTLE_MS = 500;
 const SMOOTHING_FACTOR = 0.75;
@@ -947,7 +947,7 @@ const WebcamFeed = forwardRef((props, ref) => {
   const earHistory = useRef([]);
   const eyeClosed = useRef(false);
   const lastBlink = useRef(0);
-
+  const closeFrames = useRef(0);
   const referenceFace = useRef(null);
   const calibrated = useRef(false);
   
@@ -965,6 +965,7 @@ const WebcamFeed = forwardRef((props, ref) => {
   const stopCamera = () => {
   try {
     // Stop MediaPipe
+    faceMeshRef.current?.reset?.();
     faceMeshRef.current?.close();
 
     // Stop Camera instance
@@ -984,15 +985,24 @@ const WebcamFeed = forwardRef((props, ref) => {
 
   /* PiP */
   const enablePiP = async () => {
-    const canvas = canvasRef.current;
-    const stream = canvas.captureStream(30);
+  const canvas = canvasRef.current;
 
-    if (!pipVideoRef.current) {
-      pipVideoRef.current = document.createElement("video");
-      pipVideoRef.current.muted = true;
-    }
+  if (!canvas) {
+    console.warn("Canvas not ready");
+    return;
+  }
 
-    pipVideoRef.current.srcObject = stream;
+  const stream = canvas.captureStream(30);
+
+  if (!pipVideoRef.current) {
+    pipVideoRef.current = document.createElement("video");
+    pipVideoRef.current.muted = true;
+    pipVideoRef.current.playsInline = true; // 🔥 extra safety (no side effects)
+  }
+
+  pipVideoRef.current.srcObject = stream;
+
+  try {
     await pipVideoRef.current.play();
 
     if (document.pictureInPictureElement) {
@@ -1000,7 +1010,10 @@ const WebcamFeed = forwardRef((props, ref) => {
     } else {
       await pipVideoRef.current.requestPictureInPicture();
     }
-  };
+  } catch (err) {
+    console.error("PiP error:", err);
+  }
+};
 
   useImperativeHandle(ref, () => ({
   enablePiP,
@@ -1042,10 +1055,12 @@ const WebcamFeed = forwardRef((props, ref) => {
 
   /* MAIN */
   const onResults = useCallback((res) => {
+   try{
+   const canvas = canvasRef.current;
+if (!canvas) return;
 
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d", { willReadFrequently: true });
-
+const ctx = canvas.getContext("2d", { willReadFrequently: true });
+if (!ctx) return;
     ctx.save();
     ctx.scale(-1, 1);
     ctx.drawImage(res.image, -canvas.width, 0, canvas.width, canvas.height);
@@ -1062,7 +1077,7 @@ const WebcamFeed = forwardRef((props, ref) => {
     const h = res.image.height;
 
     /* BLINK */
-    const ear = computeEAR(lm);
+const ear = computeEAR(lm);
 
 earHistory.current.push(ear);
 if (earHistory.current.length > 3) earHistory.current.shift();
@@ -1070,18 +1085,26 @@ if (earHistory.current.length > 3) earHistory.current.shift();
 const prevEAR = earHistory.current[earHistory.current.length - 2] || ear;
 const smoothedEAR = ear * 0.7 + prevEAR * 0.3;
 
-const delta = prevEAR - ear;
+// 👁️ CLOSE DETECTION (stable)
+if (smoothedEAR < BLINK_EAR_THRESHOLD) {
+  closeFrames.current++;
 
-if ((smoothedEAR < BLINK_EAR_THRESHOLD || delta > 0.05) && !eyeClosed.current) {
-  eyeClosed.current = true;
+  if (closeFrames.current >= 2 && !eyeClosed.current) {
+    eyeClosed.current = true;
+  }
+} else {
+  closeFrames.current = 0;
 }
 
+// 👁️ OPEN + COUNT
 if (smoothedEAR > BLINK_EAR_OPEN_THRESHOLD && eyeClosed.current) {
   const now = Date.now();
+
   if (now - lastBlink.current > BLINK_DEBOUNCE_MS) {
     blinkTimes.current.push(now);
     lastBlink.current = now;
   }
+
   eyeClosed.current = false;
 }
     /* DISTANCE */
@@ -1150,8 +1173,13 @@ expressionRef.current = exprState;
       setExpression(expressionRef.current);
       throttle.current = Date.now();
     }
-
-  }, []);
+  } catch (err){
+    console.error("FaceMesh Error:",err);
+  }
+  }, [setBlinkRate,
+  setDistance,
+  setHeadPosition,
+  setExpression]);
 
   /* 🚀 NEW STRESS ENGINE */
   useEffect(() => {
@@ -1238,14 +1266,22 @@ else if (expr === "eyebrow_raised") {
           `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
       });
 
-      faceMesh.setOptions({ maxNumFaces: 1, refineLandmarks: true });
-      faceMesh.onResults(onResults);
+faceMesh.setOptions({
+  maxNumFaces: 1,
+  refineLandmarks: true,
+  minDetectionConfidence: 0.5,
+  minTrackingConfidence: 0.5
+});      faceMesh.onResults(onResults);
       faceMeshRef.current = faceMesh;
       const camera = new window.Camera(videoRef.current, {
         onFrame: async () => {
           if (Date.now() - lastFrame.current > 30) {
             lastFrame.current = Date.now();
-            await faceMesh.send({ image: videoRef.current });
+            try {
+  await faceMesh.send({ image: videoRef.current });
+} catch (err) {
+  console.error("Frame send error:", err);
+}
           }
         },
         width: 640,
@@ -1254,14 +1290,22 @@ else if (expr === "eyebrow_raised") {
 
       await camera.start();
       cameraRef.current = camera;
-    };
+      if (videoRef.current) {
+      // videoRef.current.onloadedmetadata = async () => {
+        try {
+          await videoRef.current.play();
+        } catch (err) {
+          console.warn("Video play failed:", err);
+        }
+      };
+    }
+  
+    
 
     init();
 
-    return () => {
-      stopCamera();
-    };
-  }, [onResults]);
+    return () => {};
+  }, []);
 
   return (
     <div className="w-full h-full">

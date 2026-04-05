@@ -513,7 +513,7 @@ return Math.abs(headPosition.yaw) < 10 &&
 
           {/* ✅ PROGRESS BUTTON */}
          <button
-onClick={() => navigate("/progress")}>
+onClick={() => window.open("/progress","_blank")}>
   Progress
 </button>
 
