@@ -187,6 +187,16 @@ const Footer = () => {
             Real-time AI continuously monitoring and protecting your vision.
           </p>
         </div>
+        
+        <br />
+        <div className="text-center space-y-2">
+          <p className="text-lg md:text-xl font-semibold bg-gradient-to-r from-[#A855F7] to-[#EC4899] bg-clip-text text-transparent animate-fadeIn">
+            Made by Keshav Goel...🙏🏻
+          </p>
+
+          <p className="text-[#9CA3AF] text-sm animate-fadeIn delay-200"></p>
+          </div>
+
 
       </div>
 
