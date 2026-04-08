@@ -43,6 +43,19 @@ const Navbar = () => {
         >
           How it Works
         </button>
+        <button
+          onClick={() => navigate("/login")}
+          className="hover:text-white transition"
+        >
+          Login
+        </button>
+
+        <button
+          onClick={() => navigate("/signup")}
+          className="bg-gradient-to-r from-[#A855F7] to-[#EC4899] text-white px-4 py-1 rounded-xl shadow hover:brightness-110 transition"
+        >
+          Sign Up
+        </button>
 
       </div>
 

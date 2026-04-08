@@ -294,8 +294,11 @@ const Signup = () => {
         return;
       }
 
-      if (!data?.user) {
-        alert("Signup successful 🎉 Please verify your email before logging in.");
+      const userId = data?.user?.id;
+
+      if (!userId) {
+        console.warn("User not returned immediately (email verification ON)");
+        alert("Signup successful 🎉 Please verify your email.");
         navigate("/login");
         return;
       }
@@ -380,9 +383,17 @@ const Signup = () => {
 
         <input
           type="number"
+          min="1"
           placeholder="Age"
           value={form.age}
-          onChange={(e) => setForm({ ...form, age: e.target.value })}
+          onChange={(e) => {
+            const value = e.target.value;
+
+            
+            if (value < 0) return;
+
+            setForm({ ...form, age: value });
+          }}
           className="w-full bg-[#0B1220] border border-white/10 p-3 rounded-xl text-[#E5E7EB] placeholder-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#A855F7]"
         />
 

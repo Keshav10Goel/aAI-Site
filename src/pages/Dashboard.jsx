@@ -347,8 +347,8 @@ useEffect(() => {
       total += Date.now() - activeStartRef.current;
     }
 
-    setScreenTime(Math.floor(total / 60000));
-  }, 5000);
+    setScreenTime(Math.floor(total / 1000));
+  }, 1000);
 
   return () => clearInterval(timer);
 }, [isMonitoring]);
@@ -440,44 +440,57 @@ useEffect(() => {
   }, [stressScore, distance, isMonitoring]);
 
   /* ---------------- SAVE SESSION ---------------- */
-  const saveSessionToDB = async () => {
-    try {
-      const history = historyRef.current;
+ const saveSessionToDB = async () => {
+  try {
+    const history = historyRef.current;
 
-      if (history.blink.length === 0) return;
+    if (history.blink.length === 0) return;
 
-      const avgBlink =
-        history.blink.reduce((a, b) => a + b, 0) / history.blink.length;
+    const avgBlink =
+      history.blink.reduce((a, b) => a + b, 0) / history.blink.length;
 
-      const avgStress =
-        history.stress.reduce((a, b) => a + b, 0) / history.stress.length;
+    const avgStress =
+      history.stress.reduce((a, b) => a + b, 0) / history.stress.length;
 
-      const { data } = await supabase.auth.getUser();
-      if (!data?.user) return;
+    const { data } = await supabase.auth.getUser();
+    if (!data?.user) return;
 
-      await supabase.from("sessions").insert([
-        {
-          user_id: data.user.id,
-          blink_rate: Math.round(avgBlink),
-          stress_score: Math.round(avgStress),
-          screen_time: screenTime,
-          distance,
-          head_position:
-            typeof headPosition === "object"
-              ? JSON.stringify(headPosition)
-              : headPosition,
-          expression,
-          redness
-        }
-      ]);
+    // ✅ STEP 1: CALCULATE SCREEN TIME (OBJECT KE BAHAR)
+    let total = accumulatedTimeRef.current;
 
-      historyRef.current = { blink: [], stress: [] };
-
-    } catch (err) {
-      console.error(err);
+    if (activeStartRef.current) {
+      total += Date.now() - activeStartRef.current;
     }
-  };
 
+    const finalScreenTime = Math.floor(total / 1000);
+
+    // ✅ DEBUG
+    console.log("FINAL SCREEN TIME:", finalScreenTime);
+    console.log("STATE SCREEN TIME:", screenTime);
+
+    // ✅ STEP 2: SAVE CORRECT VALUE
+    await supabase.from("sessions").insert([
+      {
+        user_id: data.user.id,
+        blink_rate: Math.round(avgBlink),
+        stress_score: Math.round(avgStress),
+        screen_time: finalScreenTime, // 🔥 MAIN FIX
+        distance,
+        head_position:
+          typeof headPosition === "object"
+            ? JSON.stringify(headPosition)
+            : headPosition,
+        expression,
+        redness
+      }
+    ]);
+
+    historyRef.current = { blink: [], stress: [] };
+
+  } catch (err) {
+    console.error(err);
+  }
+};
   /* ---------------- AUTO SAVE ---------------- */
   useEffect(() => {
     if (isMonitoring) {
@@ -491,7 +504,7 @@ useEffect(() => {
 
   /* ---------------- HELPERS ---------------- */
   const formatTime = (min) =>
-    min < 60 ? `${min} min` : `${Math.floor(min / 60)}h ${min % 60}m`;
+  min < 60 ? `${min} min` : `${Math.floor(min / 60)}h ${min % 60}m`;
 
   const getScoreColor = () =>
     stressScore >= 70
@@ -499,6 +512,31 @@ useEffect(() => {
       : stressScore >= 40
       ? "text-yellow-400"
       : "text-red-400";
+
+  const formatIST = (date) => {
+  return new Date(date).toLocaleString("en-IN", {
+    timeZone: "Asia/Kolkata",
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true
+  }) + " IST";
+};
+const formatScreenTime = (totalSeconds) => {
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  const pad = (n) => String(n).padStart(2, "0");
+
+  if (hours > 0) {
+    return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+  }
+
+  return `${pad(minutes)}:${pad(seconds)}`;
+};
 
       // ---------------- HEAD POSITION FORMATTER ----------------
 const getHeadStatus = (headPosition) => {
@@ -611,7 +649,7 @@ onClick={() => window.open("/progress","_blank")}>
 
           <Metric label="Expression" value={expression} />
           <Metric label="Redness" value={redness} />
-          <Metric label="Screen Time" value={formatTime(screenTime)} />
+          <Metric label="Active Screen Time" value={formatScreenTime(screenTime)} />
 
         </div>
 
