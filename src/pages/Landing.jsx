@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabase";
 import { Eye, Activity, Monitor, Brain, UserCircle } from "lucide-react";
 import ProfileModal from "../components/ProfileModal";
-import Footer from "../components/footer";
+import Footer from "../components/Footer";
 
 const Landing = () => {
 const navigate = useNavigate();
