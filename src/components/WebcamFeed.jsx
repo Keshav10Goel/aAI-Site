@@ -8,7 +8,10 @@ const BLINK_DEBOUNCE_MS = 300;
 const STRESS_UPDATE_INTERVAL_MS = 1000;
 const STATE_THROTTLE_MS = 500;
 const SMOOTHING_FACTOR = 0.75;
-const FACE_TIMEOUT_MS = 1500;
+const FACE_TIMEOUT_MS =
+
+
+1500;
 
 /* HELPERS */
 const dist = (p1, p2) => Math.hypot(p1.x - p2.x, p1.y - p2.y);
