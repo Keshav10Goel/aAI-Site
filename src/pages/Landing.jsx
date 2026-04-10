@@ -1866,14 +1866,48 @@ import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabase";
 import { Eye, Activity, Monitor, Brain, UserCircle } from "lucide-react";
 import ProfileModal from "../components/ProfileModal";
-import Footer from "../components/Footer";
+import Footer from "../components/footer";
 
 const Landing = () => {
-  const navigate = useNavigate();
+const navigate = useNavigate();
+const [showProfile, setShowProfile] = useState(false);
 
-  // UI STATE
-  const [showProfile, setShowProfile] = useState(false);
+  const [textIndex, setTextIndex] = useState(0);
+const [typedText, setTypedText] = useState("");
+const [isDeleting, setIsDeleting] = useState(false);
+const texts = [
+  "Smart Eye Monitoring...",
+  "Fatigue Detection...",
+  "Real-Time Health Tracking..."
+];
+useEffect(() => {
+  const currentText = texts[textIndex];
 
+  const speed = isDeleting ? 80 : 120; // 🔥 control speed here
+
+  const timeout = setTimeout(() => {
+
+    if (!isDeleting) {
+      setTypedText(currentText.substring(0, typedText.length + 1));
+
+      if (typedText === currentText) {
+        setTimeout(() => setIsDeleting(true), 1000); // pause before delete
+      }
+
+    } else {
+      setTypedText(currentText.substring(0, typedText.length - 1));
+
+      if (typedText === "") {
+        setIsDeleting(false);
+        setTextIndex((prev) => (prev + 1) % texts.length);
+      }
+    }
+
+  }, speed);
+
+  return () => clearTimeout(timeout);
+
+}, [typedText, isDeleting, textIndex]);
   // AUTH STATE
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -2009,7 +2043,8 @@ const Landing = () => {
           <h1 className="text-6xl font-bold mb-6 leading-tight">
             AI Powered <br />
             <span className="bg-gradient-to-r from-[#A855F7] to-[#EC4899] bg-clip-text text-transparent">
-              Eye Health Monitoring
+              {typedText}
+              <span className="animate-pulse">|</span>
             </span>
           </h1>
 
@@ -2036,7 +2071,7 @@ const Landing = () => {
           <FeatureCard icon={<Eye size={32} />} title="Blink Detection" text="Tracks fatigue" />
           <FeatureCard icon={<Monitor size={32} />} title="Screen Distance" text="Maintains posture" />
           <FeatureCard icon={<Activity size={32} />} title="Eye Redness" text="Detect irritation" />
-          <FeatureCard icon={<Brain size={32} />} title="AI Stress Score" text="Smart evaluation" />
+          <FeatureCard icon={<Brain size={32} />} title="AI Strain Score" text="Smart evaluation" />
         </div>
       </section>
 
